@@ -1,1 +1,3 @@
 *.dat
+*.gz
+.DS_Store
