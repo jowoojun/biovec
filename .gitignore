@@ -1,3 +1,4 @@
 *.dat
 *.gz
 .DS_Store
+word2vec_basic.py
