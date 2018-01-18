@@ -149,7 +149,8 @@ with graph.as_default():
   valid_dataset = tf.constant(valid_examples, dtype=tf.int32)
 
   # Ops and variables pinned to the CPU because of missing GPU implementation
-  with tf.device('/cpu:0'):
+  #with tf.device('/cpu:0'):
+  with tf.device('/device:GPU:2'):
     # Look up embeddings for inputs.
     embeddings = tf.Variable(
         tf.random_uniform([vocabulary_size, embedding_size], -1.0, 1.0))
