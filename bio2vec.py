@@ -1,7 +1,8 @@
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
 from Bio import SwissProt
-# from __future__ import absolute_import
-# from __future__ import division
-# from __future__ import print_function
 
 import collections
 import math
@@ -10,6 +11,7 @@ import random
 from tempfile import gettempdir
 import zipfile
 
+import warnings
 import numpy as np
 from six.moves import urllib
 from six.moves import xrange  # pylint: disable=redefined-builtin
@@ -45,12 +47,14 @@ def read_data(handle):
             sequences.append(s[a*3:(a+1)*3])
             a += 1
 
-        return sequences
+    return sequences
 
 bio_words = read_data(handle)
-vocabulary_size = len(bio_words)
+print('Data size', len(bio_words))
 
-print ( 'Data size' , vocabulary_size )
+vocabulary_size = 10000
+
+# print(bio_words)
 
 def build_dataset(words, n_words):
   """Process raw inputs into a dataset."""
@@ -117,7 +121,7 @@ batch, labels = generate_batch(batch_size=8, num_skips=2, skip_window=1)
 for i in range(8):
   print(batch[i], reverse_dictionary[batch[i]],
         '->', labels[i, 0], reverse_dictionary[labels[i, 0]])
-        
+
 # Step 4: Build and train a skip-gram model.
 
 batch_size = 128
@@ -192,6 +196,8 @@ with tf.Session(graph=graph) as session:
   init.run()
   print('Initialized')
 
+  saver = tf.train.Saver()
+
   average_loss = 0
   for step in xrange(num_steps):
     batch_inputs, batch_labels = generate_batch(
@@ -222,4 +228,40 @@ with tf.Session(graph=graph) as session:
           close_word = reverse_dictionary[nearest[k]]
           log_str = '%s %s,' % (log_str, close_word)
         print(log_str)
+      saver.save(session, os.path.join('bio_log/', "model.ckpt"), step)
+
   final_embeddings = normalized_embeddings.eval()
+
+# Step 6: Visualize the embeddings.
+
+# pylint: disable=missing-docstring
+# Function to draw visualization of distance between embeddings.
+def plot_with_labels(low_dim_embs, labels, filename):
+  assert low_dim_embs.shape[0] >= len(labels), 'More labels than embeddings'
+  plt.figure(figsize=(18, 18))  # in inches
+  for i, label in enumerate(labels):
+    x, y = low_dim_embs[i, :]
+    plt.scatter(x, y)
+    plt.annotate(label,
+                 xy=(x, y),
+                 xytext=(5, 2),
+                 textcoords='offset points',
+                 ha='right',
+                 va='bottom')
+
+  plt.savefig(filename)
+
+try:
+  # pylint: disable=g-import-not-at-top
+  from sklearn.manifold import TSNE
+  import matplotlib.pyplot as plt
+
+  tsne = TSNE(perplexity=30, n_components=2, init='pca', n_iter=5000, method='exact')
+  plot_only = 500
+  low_dim_embs = tsne.fit_transform(final_embeddings[:plot_only, :])
+  labels = [reverse_dictionary[i] for i in xrange(plot_only)]
+  plot_with_labels(low_dim_embs, labels, os.path.join('bio_tsne/', 'tsne.png'))
+
+except ImportError as ex:
+  print('Please install sklearn, matplotlib, and scipy to show embeddings.')
+  print(ex)
