@@ -1,5 +1,6 @@
 from Bio import SwissProt
 
+
 import biovec
 import bio_tsne
 import tensorflow as tf
