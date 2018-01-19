@@ -29,4 +29,3 @@ How to install
   - bio_tsne : Visualization protain vectors(TSNE)
 
   - test, trained_models : Just for referances.
-
