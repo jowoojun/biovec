@@ -1,4 +1,5 @@
 *.dat
 *.gz
+*.fasta
+*.txt
 .DS_Store
-word2vec_basic.py
