@@ -17,7 +17,7 @@ If you don't working on mac OS try this
 
 How to install
 =======================================
-1 . pip install -r requirments.txt
+1. pip install -r requirments.txt
 2. tar -xzvf document/data.tar.gz
 
 
