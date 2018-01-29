@@ -20,7 +20,7 @@ How to install
 1. Install python packages.
  - pip install -r requirements.txt
 2. Download data files.
- - https://drive.google.com/open?id=1Kxba8VNqrjxROUK8dhu68t8Ee9ieEC48
+ - https://drive.google.com/open?id=1_J9uedB2BuYAkyzT6_9vuivqFqVwdkRH
 3. Unzip data files.
  - tar -xzvf document.tar.gz
 
