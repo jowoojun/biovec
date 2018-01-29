@@ -17,8 +17,12 @@ If you don't working on mac OS try this
 
 How to install
 =======================================
-1. pip install -r requirments.txt
-2. tar -xzvf document/data.tar.gz
+1. Install python packages.
+  pip install -r requirements.txt
+2. Download data files.
+  https://drive.google.com/open?id=1Kxba8VNqrjxROUK8dhu68t8Ee9ieEC48
+3. Unzip data files.
+  tar -xzvf document.tar.gz
 
 
  description 
