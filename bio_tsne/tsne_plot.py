@@ -8,7 +8,7 @@ from sklearn.manifold import TSNE
 import matplotlib
 import matplotlib.pyplot as plt
 
-class Tsne:
+class bio_tsne:
 	def visualization(model):
 		X = model[model.vocab]
 

@@ -1,5 +1,2 @@
-*.dat
-*.gz
-*.fasta
-*.txt
 .DS_Store
+/document

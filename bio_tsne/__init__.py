@@ -1,1 +1,1 @@
-from .tsne_plot import Tsne
+from .tsne_plot import bio_tsne
