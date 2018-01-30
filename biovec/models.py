@@ -57,20 +57,26 @@ class ProtVec(word2vec.Word2Vec):
         self.n = n
         self.size = size
         self.corpus_fname = corpus_fname
+        self.sg = sg
+        self.window = window
+        self.min_count = min_count
+        self.workers = workers
 
         if corpus is None and corpus_fname is None:
             raise Exception("Either corpus_fname or corpus is needed!")
 
         if corpus_fname is not None:
             print 'Now we are checking whether corpus file exist'
-            if not os.path.isfile(corpus_fname):
-                print 'There is no corpus file. Generate Corpus file from fasta file...'
+            if not os.path.isfile(out):
+                print 'INFORM : There is no corpus file. Generate Corpus file from fasta file...'
                 generate_corpusfile(corpus_fname, n, out)
             else:
-                print 'Confirmed existence'
-            corpus = word2vec.Text8Corpus(out)
-
-        word2vec.Word2Vec.__init__(self, corpus, size=size, sg=sg, window=window, min_count=min_count, workers=workers)
+                print "INFORM : File's Existence is confirmed"
+            self.corpus = word2vec.Text8Corpus(out)
+            print "\n... OK\n"
+        
+    def word2vec_init(self):
+        word2vec.Word2Vec.__init__(self, self.corpus, size=self.size, sg=self.sg, window=self.window, min_count=self.min_count, workers=self.workers)
 
     """
     convert sequence to three n-length vectors

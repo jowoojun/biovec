@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 class BioTsne:
 	def __init__(self):
-		print 'Running TSNE'
+		print 'TSNE is running..'
 	def visualization(self, model):
 		X = model[model.wv.vocab]
 
