@@ -9,6 +9,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 
 import pickle
+import os
 
 class BioTsne:
 	def __init__(self):
@@ -16,19 +17,24 @@ class BioTsne:
 
         # making tsne
 	def make_tsne(self, model):
-		X = model[model.wv.vocab]
 
-		tsne = TSNE(n_components=2)
-		X_tsne = tsne.fit_transform(X)
+            if not os.path.isfile("./bio_tsne/tsne.p"):
+                # make tsne
+                X = model[model.wv.vocab]
+                tsne = TSNE(n_components=2)
+                X_tsne = tsne.fit_transform(X)
 
                 # save X_tsne
-                pickle.dump(X_tsne , open("tsne.p","wb") )
-
+                f = open("./bio_tsne/tsne.p","wb")
+                pickle.dump(X_tsne , f)
+                f.close()
 
         def visualization(self):
                 # load X_tsne data
-                X_tsne = pickle.load( open( "tsne.p" , "rb") )
-		plt.scatter(X_tsne[:,0], X_tsne[:, 1])
+                f = open( "./bio_tsne/tsne.p" , "rb") 
+                X_tsne = pickle.load(f)
+
+                plt.scatter(X_tsne[:,0], X_tsne[:, 1])
 		plt.show()
 
-
+                f.close()
