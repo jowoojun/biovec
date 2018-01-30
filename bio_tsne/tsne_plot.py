@@ -8,14 +8,16 @@ from sklearn.manifold import TSNE
 import matplotlib
 import matplotlib.pyplot as plt
 
-class bio_tsne:
-	def visualization(model):
-		X = model[model.vocab]
+class BioTsne:
+	def __init__(self):
+		print 'Running TSNE'
+	def visualization(self, model):
+		X = model[model.wv.vocab]
 
 		tsne = TSNE(n_components=2)
 		X_tsne = tsne.fit_transform(X)
 
-		plt,scatter(X_tsne[:,0], X_tsne[:, 1])
+		plt.scatter(X_tsne[:,0], X_tsne[:, 1])
 		plt.show()
 
 		
