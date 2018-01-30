@@ -31,7 +31,7 @@ print "... OK\n"
 tsne = bio_tsne.BioTsne()
 print "Making tsne"
 
-tsne.make_tsne(mdoel)
+tsne.make_tsne(model)
 print "... OK\n"
 
 print "Visualization"
