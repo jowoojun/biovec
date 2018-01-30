@@ -28,6 +28,11 @@ model = biovec.models.load_protvec(model_fname)
 print "Loading protvec"
 print "... OK\n"
 
-print "Visualization"
 tsne = bio_tsne.BioTsne()
-tsne.visualization(model)
+print "Making tsne"
+
+tsne.make_tsne(mdoel)
+print "... OK\n"
+
+print "Visualization"
+tsne.visualization()
