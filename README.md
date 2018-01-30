@@ -24,7 +24,11 @@ How to install
      https://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python
 
 2. Download data file.
-  - https://drive.google.com/open?id=1_J9uedB2BuYAkyzT6_9vuivqFqVwdkRH
+  1) If you want to just test this program, you can download small database from below link.
+  - https://drive.google.com/open?id=12BU8aFtWFtA5x9iTIV4TsxCpniT9Neiu
+  
+  2) On the other hand, If you want to run original program, you have to download original database from below link.
+  - we are not ready yet...
 
 3. Move the downloaded file to a directory obtained from git clone.
 
