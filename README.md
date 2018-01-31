@@ -8,7 +8,6 @@ Uniprot (Swiss-prot)
 
 Disprot
  - http://www.disprot.org/browse
- 
 
 If you don't working on mac OS try this
 =======================================
@@ -25,15 +24,19 @@ How to install
 
 2. Download data file.
   1) If you want to just test this program, you can download small database from below link.
-  - https://drive.google.com/open?id=14zxmM1XtYFZ319OS4-1op-4zRq-0MGRY 
-  
+  - https://drive.google.com/open?id=1-hHiEMMPlNM4XLY2i3guaI16gLuW-VRc
+
   2) On the other hand, If you want to run original program, you have to download original database from below link.
-  - https://drive.google.com/open?id=12BU8aFtWFtA5x9iTIV4TsxCpniT9Neiu
+  - https://drive.google.com/open?id=1gtzoPyNePFW8RcuUmCh-JkVW4e7sc0gh
 
 3. Move the downloaded file to a directory obtained from git clone.
 
 4. Then, unzip data file.
-  - tar -xzvf document.tar.gz
+  1) If you download small DB
+  - tar -xzvf small_DB.tar.gz
+
+  2) If you download original DB
+  - tar -xzvf original_DB.tar.gz
 
 
  description 

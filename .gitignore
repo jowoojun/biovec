@@ -2,7 +2,5 @@
 /document
 /small
 /big
-2017trained_model
-/datas
-*.txt
+ngram_corpus.txt
 *.csv
