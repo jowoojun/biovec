@@ -1,8 +1,10 @@
 from Bio import SeqIO
 from gensim.models import word2vec
 
+import numpy as np
 import sys
 import os
+import gzip
 
 """
  'AGAMQSASM' => [['AGA', 'MQS', 'ASM'], ['GAM','QSA'], ['AMQ', 'SAS']]
@@ -29,11 +31,12 @@ Description:
 '''
 def generate_corpusfile(corpus_fname, n, out):
     f = open(out, "w")
-    for r in SeqIO.parse(corpus_fname, "fasta"):
-        ngram_patterns = split_ngrams(r.seq, n)
-        for ngram_pattern in ngram_patterns:
-            f.write(" ".join(ngram_pattern) + "\n")
-        sys.stdout.write(".")
+    with gzip.open(corpus_fname, 'rb') as fasta_file:
+        for r in SeqIO.parse(fasta_file, "fasta"):
+            ngram_patterns = split_ngrams(r.seq, n)
+            for ngram_pattern in ngram_patterns:
+                f.write(" ".join(ngram_pattern) + "\n")
+                sys.stdout.write(".")
 
     f.close()
 
@@ -41,6 +44,8 @@ def generate_corpusfile(corpus_fname, n, out):
 def load_protvec(model_fname):
     return word2vec.Word2Vec.load(model_fname)
 
+def normalize(x):
+    return x / np.sqrt(np.dot(x, x))
 
 class ProtVec(word2vec.Word2Vec):
 
@@ -54,7 +59,7 @@ class ProtVec(word2vec.Word2Vec):
     min_count: least appearance count in corpus. if the n-gram appear k times which is below min_count, the model does not remember the n-gram
     """
     def __init__(self, corpus_fname=None, corpus=None, n=3, size=100,
-                 out="corpus.txt",  sg=1, window=25, min_count=2, workers=3):
+                 out="corpus.txt",  sg=1, window=25, min_count=1, workers=3):
         skip_gram = True
 
         self.n = n
@@ -79,12 +84,12 @@ class ProtVec(word2vec.Word2Vec):
             self.corpus = word2vec.Text8Corpus(out)
             print "\n... OK\n"
 
-    def word2vec_init(self):
+    def word2vec_init(self, ngram_model_fname):
         word2vec.Word2Vec.__init__(self, self.corpus, size=self.size, sg=self.sg, window=self.window, min_count=self.min_count, workers=self.workers)
-        Word2Vec([line.rstrip().split() for line in open(out)], min_count =
+        model = word2vec.Word2Vec([line.rstrip().split() for line in open(self.out)], min_count =
                  self.min_count, size=self.size, sg=self.sg,
                  window=self.window)
-        model.wv.save_word2vec_format('{}_vector.txt'.format(out))
+        model.wv.save_word2vec_format(ngram_model_fname)
 
 
     """
@@ -92,15 +97,14 @@ class ProtVec(word2vec.Word2Vec):
     e.g. 'AGAMQSASM' => [ array([  ... * 100 ], array([  ... * 100 ], array([  ... * 100 ] ]
     """
     def to_vecs(self, seq):
-        ngram_patterns = split_ngrams(seq, self.n)
+        ngrams_seq = split_ngrams(seq, self.n)
 
-        protvecs = []
-        for ngrams in ngram_patterns:
-            ngram_vecs = []
-            for ngram in ngrams:
+        protvecs = np.zeros(self.size, dtype=np.float32)
+        for ngram_line in ngrams_seq:
+            for ngram in ngram_line:
                 try:
-                    ngram_vecs.append(self[ngram])
+                    ngram_vecs = (self[ngram])
                 except:
                     raise Exception("Model has never trained this n-gram: " + ngram)
-            protvecs.append(sum(ngram_vecs))
-        return protvecs
+                protvecs += ngram_vecs
+        return normalize(protvecs)

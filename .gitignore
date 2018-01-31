@@ -1,4 +1,8 @@
 .DS_Store
 /document
-document.tar.gz
+/small
+/big
 2017trained_model
+/datas
+*.txt
+*.csv

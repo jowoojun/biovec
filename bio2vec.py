@@ -1,29 +1,40 @@
-from Bio import SwissProt
+from Bio import SeqIO
 
 import biovec
 import bio_tsne
 import tensorflow as tf
 import numpy as np
 import os
+import sys
+import gzip
 
-pv = biovec.ProtVec("./document/uniprot_sprot.fasta", out="./document/uniprot_sprot_corpus")
+fasta_file = "./document/uniprot_sprot.fasta.gz"
+pv = biovec.ProtVec(fasta_file,
+                    out="./trained_models/ngram_corpus.txt")
 
-handle = open("./document/uniprot_sprot.dat")
+print "Now we are checking the file(trained_models/ngram_vector.csv)"
+ngram_model_fname = "./trained_models/ngram_vector.csv"
+protein_model_fname = "./trained_models/protein_vector.csv"
 
-print "Now we are checking the file(trained_models/2017trained_model)"
-model_fname = "./trained_models/2017trained_model"
-if not os.path.isfile(model_fname):
+if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fname):
     print 'INFORM : There is no model file. Generate model file from data file...'
-    pv.word2vec_init()
-    pv["QAT"]
-    for record in SwissProt.parse(handle):
-        pv.to_vecs(record.sequence)
-        pv.save(model_fname)
+    pv.word2vec_init(ngram_model_fname)
+
+    with gzip.open(fasta_file, 'rb') as fasta_file:
+        with open(protein_model_fname, 'w') as output_file:
+            for record in SeqIO.parse(fasta_file, "fasta"):
+                protein_name = record.name.split('|')[-1]
+                protein_vector = pv.to_vecs(record.seq)
+                output_file.write('{}\t{}'.format(protein_name, ' '.join(map(str, protein_vector))))
+                sys.stdout.write(".")
 else:
     print "INFORM : File's Existence is confirmed"
 
-print "... OK\n"
+print "... Done\n"
 
+
+
+"""
 model = biovec.models.load_protvec(model_fname)
 print "Loading protvec"
 print "... OK\n"
@@ -36,3 +47,4 @@ print "... OK\n"
 
 print "Visualization"
 tsne.visualization()
+"""
