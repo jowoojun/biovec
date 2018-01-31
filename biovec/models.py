@@ -54,7 +54,7 @@ class ProtVec(word2vec.Word2Vec):
     min_count: least appearance count in corpus. if the n-gram appear k times which is below min_count, the model does not remember the n-gram
     """
     def __init__(self, corpus_fname=None, corpus=None, n=3, size=100,
-                 out="corpus.txt",  sg=1, window=25, min_count=2, workers=3):
+                 out="corpus.txt",  sg=1, window=25, min_count=1, workers=3):
         skip_gram = True
 
         self.n = n
@@ -81,10 +81,10 @@ class ProtVec(word2vec.Word2Vec):
 
     def word2vec_init(self):
         word2vec.Word2Vec.__init__(self, self.corpus, size=self.size, sg=self.sg, window=self.window, min_count=self.min_count, workers=self.workers)
-        Word2Vec([line.rstrip().split() for line in open(out)], min_count =
+        model = word2vec.Word2Vec([line.rstrip().split() for line in open(self.out)], min_count =
                  self.min_count, size=self.size, sg=self.sg,
                  window=self.window)
-        model.wv.save_word2vec_format('{}_vector.txt'.format(out))
+        model.wv.save_word2vec_format('{}_vector.txt'.format(self.out))
 
 
     """
