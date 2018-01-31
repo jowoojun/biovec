@@ -6,7 +6,7 @@ import tensorflow as tf
 import numpy as np
 import os
 
-pv = biovec.ProtVec("./document/uniprot_sprot.fasta", out="./document/uniprot_sprot_corpus.txt")
+pv = biovec.ProtVec("./document/uniprot_sprot.fasta", out="./document/uniprot_sprot_corpus")
 
 handle = open("./document/uniprot_sprot.dat")
 
