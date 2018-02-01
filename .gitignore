@@ -4,3 +4,6 @@
 /big
 ngram_corpus.txt
 *.csv
+*.swp
+*.pyc
+/trained_models
