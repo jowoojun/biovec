@@ -38,3 +38,15 @@ class BioTsne:
         plt.show()
 
         f.close()
+
+    def link_labels_2Dim(self, model.wv.vocab, ):
+        #link labels with 2-dimension vectors
+        dictionary = dict()
+        labels = model.wv.vocab.keys()
+        f = open( "./bio_tsne/tsne.p", "rb")
+        X_tsne = pickle.load(f)
+        for i, label in enumerate(labels):
+            x, y = x_tsne[i, :]
+            color_value = choose_category(calculate_property(label), "mass")
+            plt.scatter(x, y, c = color_value)
+
