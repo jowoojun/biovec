@@ -16,9 +16,12 @@ print "Now we are checking the file(trained_models/ngram_vector.csv)"
 ngram_model_fname = "trained_models/ngram_vector.csv"
 protein_model_fname = "trained_models/protein_vector.csv"
 
+model_ngram = "trained_models/ngram_model"
+
 if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fname):
     print 'INFORM : There is no model file. Generate model file from data file...'
     pv.word2vec_init(ngram_model_fname)
+    pv.save(model_ngram)
 
     with gzip.open(fasta_file, 'rb') as fasta_file:
         with open(protein_model_fname, 'w') as output_file:
