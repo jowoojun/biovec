@@ -8,13 +8,13 @@ import os
 import sys
 import gzip
 
-fasta_file = "./document/uniprot_sprot.fasta.gz"
+fasta_file = "document/uniprot_sprot.fasta.gz"
 pv = biovec.ProtVec(fasta_file,
-                    out="./trained_models/ngram_corpus.txt")
+                    out="trained_models/ngram_corpus.txt")
 
 print "Now we are checking the file(trained_models/ngram_vector.csv)"
-ngram_model_fname = "./trained_models/ngram_vector.csv"
-protein_model_fname = "./trained_models/protein_vector.csv"
+ngram_model_fname = "trained_models/ngram_vector.csv"
+protein_model_fname = "trained_models/protein_vector.csv"
 
 if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fname):
     print 'INFORM : There is no model file. Generate model file from data file...'
