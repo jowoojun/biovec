@@ -25,7 +25,7 @@ if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fna
             for record in SeqIO.parse(fasta_file, "fasta"):
                 protein_name = record.name.split('|')[-1]
                 protein_vector = pv.to_vecs(record.seq)
-                output_file.write('{}\t{}'.format(protein_name, ' '.join(map(str, protein_vector))))
+                output_file.write('{}\t{}\n'.format(protein_name, ' '.join(map(str, protein_vector))))
                 sys.stdout.write(".")
 else:
     print "INFORM : File's Existence is confirmed"
