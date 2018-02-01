@@ -4,3 +4,5 @@
 /big
 ngram_corpus.txt
 *.csv
+*.swp
+*.pyc
