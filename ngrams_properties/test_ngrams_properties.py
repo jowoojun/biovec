@@ -14,16 +14,21 @@ def test_calculate_property():
                           calculate_property(label))
 def test_make_property_dict():
     labels = ['ACD', 'DEF', 'HIK']
-#    assert np.array([3, 6, 9, 12, 15, 18]) == make_property_dict(labels)['ACD']
-#    assert np.array([3, 6, 9, 12, 15, 18]) == make_property_dict(labels)['DEF']
-#    assert np.array([3, 6, 9, 12, 15, 18]) == make_property_dict(labels)['HIK']
-    assert np.array_equal(np.array([3, 6, 9, 12, 15, 18]), make_property_dict(labels)['ACD'])
-    assert np.array_equal(np.array([3, 6, 9, 12, 15, 18]), make_property_dict(labels)['DEF'])
-    assert np.array_equal(np.array([3, 6, 9, 12, 15, 18]), make_property_dict(labels)['HIK'])
+    assert np.array_equal(3, make_property_dict(labels, "mass")['ACD'])
+    assert np.array_equal(6, make_property_dict(labels, "volume")['DEF'])
+    assert np.array_equal(9, make_property_dict(labels, "van_der_waal")['HIK'])
+
 def test_choose_category():
     sum_properties = np.array([3, 6, 9, 12, 15, 18])
     category_m = "mass"
     category_v = "volume"
+    category_va = "van_der_waal"
+    category_p = "polarity"
+    category_h = "hydro"
+    category_c = "charge"
     assert 3 == choose_category(sum_properties, category_m)
     assert 6 == choose_category(sum_properties, category_v)
-
+    assert 9 == choose_category(sum_properties, category_va)
+    assert 12 == choose_category(sum_properties, category_p)
+    assert 15 == choose_category(sum_properties, category_h)
+    assert 18 == choose_category(sum_properties, category_c)
