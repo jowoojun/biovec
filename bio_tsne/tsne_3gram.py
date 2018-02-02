@@ -29,10 +29,17 @@ class BioTsne:
 
             f.close()
 
+    def link_with_vector(self, vectors, property_dict):
+        for i, label in enumerate(property_dict.keys()):
+            property_dict[label] = vectors[i] + [property_dict[label]]
+        return property_dict
+
     def visualization(self):
         # load X_tsne data
         f = open( "./bio_tsne/tsne.p" , "rb")
         X_tsne = pickle.load(f)
+
+        # link with X_tsne data with labels and 3grams properties
 
         plt.scatter(X_tsne[:,0], X_tsne[:, 1])
         plt.show()
