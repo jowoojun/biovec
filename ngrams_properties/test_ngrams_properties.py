@@ -32,3 +32,7 @@ def test_choose_category():
     assert 12 == choose_category(sum_properties, category_p)
     assert 15 == choose_category(sum_properties, category_h)
     assert 18 == choose_category(sum_properties, category_c)
+
+def test_key_sequence():
+    labels = ['ACD', 'DEF', 'HIK']
+    assert labels == make_property_dict(labels, "mass").keys()

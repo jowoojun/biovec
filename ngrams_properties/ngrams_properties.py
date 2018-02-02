@@ -1,4 +1,5 @@
 import numpy as np
+import collections
 
 NGRAM_PROPERTIES = {
     'A': [1, 2, 3, 4, 5, 6],
@@ -60,7 +61,7 @@ def choose_category(sum_properties, category):
 dictionary = {'ABC' : sum_properties}
 """
 def make_property_dict(labels, category):
-    property_dict = {}
+    property_dict = collections.OrderedDict()
     for label in labels:
         property_dict[label] = choose_category(calculate_property(label),
                                                category)
