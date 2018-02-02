@@ -23,6 +23,10 @@ NGRAM_PROPERTIES = {
     'Y': [1, 2, 3, 4, 5, 6]
 }
 
+# sum up 3grams property
+"""
+sum_properties = property['A'] + property['B'] + property['C']
+"""
 def calculate_property(label):
     split_to_char = list(label)
     sum_properties = np.array([0, 0, 0, 0, 0, 0])
@@ -30,30 +34,34 @@ def calculate_property(label):
         sum_properties += np.array(NGRAM_PROPERTIES[char])
     return sum_properties
 
-def make_property_dict(labels):
-    property_dict = {}
-    for label in labels:
-        property_dict[label] = calculate_property(label)
-    return property_dict
-
+"""
+pick up specific property
+"""
 def choose_category(sum_properties, category):
-    if category is "mass":
+    if category == "mass":
         return sum_properties[0]
 
-    elif category is "volume":
+    elif category == "volume":
         return sum_properties[1]
 
-    elif category is "van_der_waal":
-        return sum_properties
+    elif category == "van_der_waal":
+        return sum_properties[2]
 
-    elif category is "polarity":
-        return sum_properties
+    elif category == "polarity":
+        return sum_properties[3]
 
-    elif category is "hydro":
-        return sum_properties
+    elif category == "hydro":
+        return sum_properties[4]
 
-    elif category is "charge":
-        return sum_properties
+    elif category == "charge":
+        return sum_properties[5]
 
-    else:
-        print "category is not on the list"
+"""
+dictionary = {'ABC' : sum_properties}
+"""
+def make_property_dict(labels, category):
+    property_dict = {}
+    for label in labels:
+        property_dict[label] = choose_category(calculate_property(label),
+                                               category)
+    return property_dict
