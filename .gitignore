@@ -7,3 +7,4 @@ ngram_corpus.txt
 *.swp
 *.pyc
 /trained_models
+/.pytest_cache

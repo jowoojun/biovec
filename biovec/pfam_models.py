@@ -1,10 +1,11 @@
 from Bio import SeqIO
+from collections import Counter
 import gzip
 import sys
 
 class Pfam:
-    def __init__(self, min_count = 20):
-        self.min_count = min_count
+    def __init__(self):
+        self.number_of_protein_in_family = Counter()
 
     def pfam_parser(self, data_path):
         protein_family_dict = {}
@@ -15,8 +16,9 @@ class Pfam:
                 uniprot_name = record.name.split('/', 1)[0].lstrip('>')
                 family_name = record.description.rsplit(';', 2)[1]
                 protein_family_dict[uniprot_name] = family_name
+                self.number_of_protein_in_family[family_name] += 1
 
-        return protein_family_dict
+        return protein_family_dict, self.number_of_protein_in_family
 
 if __name__ == '__main__':
     data_path = '../document/Pfam-A.fasta.gz'
