@@ -72,10 +72,9 @@ class ProtVec(word2vec.Word2Vec):
         self.out = out
 
         directory = out.split('/')[0]
-        print directory
         if not os.path.exists(directory):
             os.makedirs(directory)
-            print "directory(trained_models) created"
+            print "directory(trained_models) created\n"
 
         if corpus is None and corpus_fname is None:
             raise Exception("Either corpus_fname or corpus is needed!")
