@@ -44,8 +44,9 @@ protein_pfam_model_fname = "trained_models/protein_pfam_vector.csv"
 if not os.path.isfile(protein_pfam_model_fname):
     print 'INFORM : There is no pfam_model file. Generate pfam_model files from data file...'
 
-    pf = biovec.Pfam(min_count=20)
-    protein_family_dict = pf.pfam_parser("./document/Pfam-A.fasta.gz")
+    pf = biovec.Pfam()
+    min_count = 20
+    protein_family_dict, number_of_protein_in_family = pf.pfam_parser("./document/Pfam-A.fasta.gz")
 
     """
     print "Making the file(protein_pfam_vector.fasta)"
@@ -67,7 +68,9 @@ if not os.path.isfile(protein_pfam_model_fname):
         for line in protein_vector_file:
             uniprot_name, vector_string = line.rstrip().split('\t', 1)
             if uniprot_name in protein_family_dict:
-                f.write('{}\t{}\t{}'.format(uniprot_name, protein_family_dict[uniprot_name], vector_string) + "\n")
+                family_name = protein_family_dict[uniprot_name]
+                if number_of_protein_in_family[family_name] >= min_count:
+                    f.write('{}\t{}\t{}'.format(uniprot_name, protein_family_dict[uniprot_name], vector_string) + "\n")
             #sys.stdout.write(".")
     f.close()
 
