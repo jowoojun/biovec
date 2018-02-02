@@ -12,10 +12,14 @@ class Pfam:
 
         with gzip.open(data_path, 'rb') as fasta_file:
             for record in SeqIO.parse(fasta_file, "fasta"):
-                uniprot_id = record.name.split('/', 1)[0].lstrip('>')
-                family_name = record.description.rsplit(';', 2)[2]
-                protein_family_dict[uniprot_id] = family_name
-                sys.stdout.write(".")
+                uniprot_name = record.name.split('/', 1)[0].lstrip('>')
+                family_name = record.description.rsplit(';', 2)[1]
+                protein_family_dict[uniprot_name] = family_name
 
+        print protein_family_dict
         return protein_family_dict
 
+if __name__ == '__main__':
+    data_path = '../document/Pfam-A.fasta.gz'
+    pf = Pfam()
+    pf.pfam_parser(data_path)
