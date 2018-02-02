@@ -5,7 +5,6 @@ import re
 import nltk
 
 from sklearn.manifold import TSNE
-import matplotlib
 import matplotlib.pyplot as plt
 
 import pickle
@@ -33,8 +32,19 @@ class BioTsne:
         # load X_tsne data
         f = open( "./bio_tsne/tsne.p" , "rb")
         X_tsne = pickle.load(f)
-
-        plt.scatter(X_tsne[:,0], X_tsne[:, 1])
+        
+        #set marker size
+        marker_size=10
+        
+        #set scatter 
+        plt.scatter(X_tsne[:,0], X_tsne[:, 1],marker_szie , """X_tsne[:,2]""")
+        
+        #set color bar 
+        cbar=plt.colorbar()
+        
+        #set label
+        plt.title("Mass")
+            
         plt.show()
 
         f.close()
