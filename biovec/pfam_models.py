@@ -8,7 +8,7 @@ class Pfam:
 
     def pfam_parser(self, data_path):
         protein_family_dict = {}
-        print "Making dictionary about protein and family\n"
+        print "\nMaking files about protein and family\n"
 
         with gzip.open(data_path, 'rb') as fasta_file:
             for record in SeqIO.parse(fasta_file, "fasta"):
@@ -16,7 +16,6 @@ class Pfam:
                 family_name = record.description.rsplit(';', 2)[1]
                 protein_family_dict[uniprot_name] = family_name
 
-        print protein_family_dict
         return protein_family_dict
 
 if __name__ == '__main__':
