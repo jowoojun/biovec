@@ -25,5 +25,6 @@ print "Making tsne"
 tsne_protein = tsne.make_tsne(model)
 print "... OK\n"
 
+
 print "Visualization"
 tsne.visualization()

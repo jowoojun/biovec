@@ -40,8 +40,8 @@ class BioTsne:
         
 
 
-        fig ,axarr = plt.subplots(2,3)
-        
+        fig ,axarr = plt.subplots(2,3,figsize=(15,9))    
+
         #set marker size
         marker_size=1
 
