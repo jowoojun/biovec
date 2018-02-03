@@ -36,8 +36,6 @@ class BioTsne:
     def visualization(self, X_tsne):
         # load final_embedding data
 
-        fig ,axarr = plt.subplots(2,3)
-
         #set marker size
         marker_size=1
 

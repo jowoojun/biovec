@@ -30,5 +30,6 @@ final_embedding = link_with_vector(vectors, property_dict)
 
 print "... OK\n"
 
+
 print "Visualization"
 tsne.visualization(final_embedding)
