@@ -29,38 +29,43 @@ class BioTsne:
             f.close()
 
     def link_with_vector(self, vectors, property_list):
-        final_list = []
-        for i, properties in enumerate(property_list):
-            final_list += [list(vectors[i]) + properties]
-        return final_list
+        print np.append(vectors , property_list,axis=1)
+        return np.append(vectors , property_list,axis=1)
 
     def visualization(self, X_tsne):
         # load final_embedding data
-
+        
+        fig , axarr = plt.subplots(2,3, figsize=(15,10))
         #set marker size
         marker_size=1
 
         #set scatter
-        axarr[0,0].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,2])
+        g1 = axarr[0,0].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,2])
         axarr[0,0].set_title("Mass")
+        fig.colorbar(g1, ax=axarr[0,0])
 
-        axarr[0,1].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,2])
+        g2 = axarr[0,1].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,3])
         axarr[0,1].set_title("Volume")
+        fig.colorbar(g2, ax=axarr[0,1])
 
-        axarr[0,2].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,2])
+        g3 = axarr[0,2].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,4])
         axarr[0,2].set_title("Van der Waals Volume")
+        fig.colorbar(g3, ax=axarr[0,2])
 
-        axarr[1,0].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,2])
+        g4 = axarr[1,0].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,5])
         axarr[1,0].set_title("Polarity")
+        fig.colorbar(g4, ax=axarr[1,0])
 
-        axarr[1,1].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,2])
+        g5 = axarr[1,1].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,6])
         axarr[1,1].set_title("Hydrophobicity")
+        fig.colorbar(g5, ax=axarr[1,1])
 
-        axarr[1,2].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,2])
+        g6 = axarr[1,2].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size ,X_tsne[:,7])
         axarr[1,2].set_title("Charge")
+        fig.colorbar(g6, ax=axarr[1,2])
 
         #set color bar
-        #cbar=plt.colorbar()
+
         plt.show()
 
         f.close()
