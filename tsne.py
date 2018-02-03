@@ -1,6 +1,7 @@
 import bio_tsne.tsne_3gram as t3
 import bio_tsne.tsne_protein as tp
 import biovec
+from ngrams_properties import ngrams_properties
 
 print "3gram or protein"
 str = raw_input()
@@ -22,8 +23,12 @@ print "... OK\n"
 
 
 print "Making tsne"
+labels = model.keys()
+property_dict = make_property_dict(labels, "mass")
 tsne_protein = tsne.make_tsne(model)
+final_embedding = link_with_vector(vectors, property_dict)
+
 print "... OK\n"
 
 print "Visualization"
-tsne.visualization()
+tsne.visualization(final_embedding)
