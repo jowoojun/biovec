@@ -36,3 +36,5 @@ def test_choose_category():
 def test_key_sequence():
     labels = ['ACD', 'DEF', 'HIK']
     assert labels == make_property_dict(labels, "mass").keys()
+    labels = ['HIK', 'DEF', 'ACD']
+    assert labels == make_property_dict(labels, "volume").keys()
