@@ -17,36 +17,25 @@ class BioTsne:
 
     # making tsne
     def make_tsne(self, model):
-        if not os.path.isfile("./bio_tsne/tsne.p"):
-            # make tsne
-            X = model[model.wv.vocab]
+        if not os.path.isfile("./trained_models/protein_2D_vector"):
+            # make tsne # have to use csv file
+            # X = model[model.wv.vocab]
             tsne = TSNE(n_components=2)
             X_tsne = tsne.fit_transform(X)
 
             # save X_tsne
-            f = open("./bio_tsne/tsne.p","wb")
+            f = open("./trained_models/protein_2D_vector","wb")
             pickle.dump(X_tsne , f)
 
             f.close()
 
     def visualization(self):
         # load X_tsne data
-        f = open( "./bio_tsne/tsne.p" , "rb")
+        f = open( "./trained_models/protein_2D_vector" , "rb")
         X_tsne = pickle.load(f)
 
         plt.scatter(X_tsne[:,0], X_tsne[:, 1])
         plt.show()
 
         f.close()
-
-    def link_labels_2Dim(self, model.wv.vocab, ):
-        #link labels with 2-dimension vectors
-        dictionary = dict()
-        labels = model.wv.vocab.keys()
-        f = open( "./bio_tsne/tsne.p", "rb")
-        X_tsne = pickle.load(f)
-        for i, label in enumerate(labels):
-            x, y = x_tsne[i, :]
-            color_value = choose_category(calculate_property(label), "mass")
-            plt.scatter(x, y, c = color_value)
 

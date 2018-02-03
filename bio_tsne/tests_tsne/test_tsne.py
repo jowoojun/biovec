@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-xyz=np.array(np.random.random((5,3)))
+xyz=np.array(np.random.random((5,2)))
 
 color = np.array([55.3,55.4,55.9,60.1,60.5])
 

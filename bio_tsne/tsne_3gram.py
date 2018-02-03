@@ -37,16 +37,36 @@ class BioTsne:
         # load X_tsne data
         f = open( "./trained_models/ngram_2D_vector" , "rb")
         X_tsne = pickle.load(f)
+        
 
 
+        fig ,axarr = plt.subplots(2,3)
+        
         #set marker size
-        marker_size=10
+        marker_size=1
+
         #set scatter 
-        plt.scatter(X_tsne[:,0], X_tsne[:, 1], marker_size )#,"""X_tsne[:,2]""")
+        axarr[0,0].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size )#,"""X_tsne[:,2]""")
+        axarr[0,0].set_title("Mass")
+
+        axarr[0,1].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size )#,"""X_tsne[:,2]""")
+        axarr[0,1].set_title("Volume")
+
+        axarr[0,2].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size )#,"""X_tsne[:,2]""")
+        axarr[0,2].set_title("Van der Waals Volume")
+        
+        axarr[1,0].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size )#,"""X_tsne[:,2]""")
+        axarr[1,0].set_title("Polarity")
+        
+        axarr[1,1].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size )#,"""X_tsne[:,2]""")
+        axarr[1,1].set_title("Hydrophobicity")
+        
+        axarr[1,2].scatter(X_tsne[:,0], X_tsne[:, 1], marker_size )#,"""X_tsne[:,2]""")
+        axarr[1,2].set_title("Charge")
+        
         #set color bar 
         #cbar=plt.colorbar()
-        #set label
-        plt.title("Mass")
+        
         plt.show()
 
         f.close()
