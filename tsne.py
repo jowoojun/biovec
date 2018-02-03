@@ -1,7 +1,8 @@
 import bio_tsne.tsne_3gram as t3
 import bio_tsne.tsne_protein as tp
 import biovec
-from ngrams_properties import ngrams_properties
+import ngrams_properties.ngrams_properties as pro
+import pickle
 
 print "3gram or protein"
 str = raw_input()
@@ -23,10 +24,13 @@ print "... OK\n"
 
 
 print "Making tsne"
-labels = model.keys()
-property_dict = make_property_dict(labels, "mass")
-tsne_protein = tsne.make_tsne(model)
-final_embedding = link_with_vector(vectors, property_dict)
+labels = model.wv.vocab.keys()
+#print labels
+property_list = pro.make_property_list(labels)
+tsne.make_tsne(model)
+f = open("./trained_models/ngram_2D_vector","rb")
+vectors = pickle.load(f)
+final_embedding = tsne.link_with_vector(vectors, property_list)
 
 print "... OK\n"
 
