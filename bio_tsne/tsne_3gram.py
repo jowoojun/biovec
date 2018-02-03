@@ -31,7 +31,7 @@ class BioTsne:
     def link_with_vector(self, vectors, property_list):
         final_list = []
         for i, properties in enumerate(property_list):
-            final_list += [vectors[i] + properties]
+            final_list += [list(vectors[i]) + properties]
         return final_list
 
     def visualization(self, X_tsne):
