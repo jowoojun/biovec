@@ -6,14 +6,17 @@ import collections
 
 def test_link_with_labels():
     vectors = [[0.5, 0.1], [0.2, 0.3], [0.5, 0.3], [0.8, 0.2]]
-    labels_with_properties = collections.OrderedDict()
-    labels_with_properties['ACD'] = 1
-    labels_with_properties['CDI'] = 2
-    labels_with_properties['CCC'] = 3
-    labels_with_properties['DDD'] = 4
+    labels_with_properties = []
+    labels_with_properties += [[1, 2, 3, 4, 5, 6]]
+    labels_with_properties += [[2, 3, 4, 5, 6, 7]]
+    labels_with_properties += [[3, 4, 5, 6, 7, 8]]
+    labels_with_properties += [[4, 5, 6, 7, 8, 9]]
     bio = BioTsne()
     result = bio.link_with_vector(vectors, labels_with_properties)
-    assert result['ACD'] == [0.5, 0.1, 1]
-    assert result['CDI'] == [0.2, 0.3, 2]
-    assert result['CCC'] == [0.5, 0.3, 3]
-    assert result['DDD'] == [0.8, 0.2, 4]
+    assert result == [ [0.5, 0.1, 1, 2, 3, 4, 5, 6],
+                       [0.2, 0.3, 2, 3, 4, 5, 6, 7],
+                       [0.5, 0.3, 3, 4, 5, 6, 7, 8],
+                       [0.8, 0.2, 4, 5, 6, 7, 8, 9]]
+
+
+

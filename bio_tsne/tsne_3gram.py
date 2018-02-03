@@ -28,10 +28,11 @@ class BioTsne:
 
             f.close()
 
-    def link_with_vector(self, vectors, property_dict):
-        for i, label in enumerate(property_dict.keys()):
-            property_dict[label] = vectors[i] + [property_dict[label]]
-        return property_dict
+    def link_with_vector(self, vectors, property_list):
+        final_list = []
+        for i, properties in enumerate(property_list):
+            final_list += [vectors[i] + properties]
+        return final_list
 
     def visualization(self, X_tsne):
         # load final_embedding data

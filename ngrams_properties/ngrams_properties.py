@@ -35,34 +35,15 @@ def calculate_property(label):
         sum_properties += np.array(NGRAM_PROPERTIES[char])
     return sum_properties
 
-"""
-pick up specific property
-"""
-def choose_category(sum_properties, category):
-    if category == "mass":
-        return sum_properties[0]
-
-    elif category == "volume":
-        return sum_properties[1]
-
-    elif category == "van_der_waal":
-        return sum_properties[2]
-
-    elif category == "polarity":
-        return sum_properties[3]
-
-    elif category == "hydro":
-        return sum_properties[4]
-
-    elif category == "charge":
-        return sum_properties[5]
 
 """
-dictionary = {'ABC' : sum_properties}
+list = [
+        [1, 2, 3, 4, 5, 6],
+        [2, 3, 4, 5, 6, 7]
+                          ]
 """
-def make_property_dict(labels, category):
-    property_dict = collections.OrderedDict()
+def make_property_list(labels):
+    property_list = []
     for label in labels:
-        property_dict[label] = choose_category(calculate_property(label),
-                                               category)
-    return property_dict
+        property_list += [calculate_property(label)]
+    return property_list
