@@ -1,5 +1,6 @@
 import numpy as np
 import collections
+from random import *
 
 NGRAM_PROPERTIES = {
     'A': [71.0788  , 67. , 67. , 7.   , 47. , 6.01 ],
@@ -33,7 +34,7 @@ def calculate_property(label):
     split_to_char = list(label)
     sum_properties = np.array([0., 0., 0., 0., 0., 0.])
     for char in split_to_char:
-        sum_properties += np.array(NGRAM_PROPERTIES[char])
+        sum_properties += np.array(pick_key(char))
     return sum_properties/3.
 
 
@@ -48,3 +49,16 @@ def make_property_list(labels):
     for label in labels:
         property_list += [calculate_property(label)]
     return property_list
+
+def pick_key(char):
+    rand_dict = { 1 : 'N', 2 : 'D', 3 : 'E', 4 : 'Q', 5 : 'L', 6 : 'I'}
+    try:
+        return NGRAM_PROPERTIES[char]
+    #return NGRAM_PROPERTIES[char]
+    except:
+        if char == 'B':
+            return NGRAM_PROPERTIES[rand_dict[randint(1, 2)]]
+        elif char == 'Z':
+            return NGRAM_PROPERTIES[rand_dict[randint(3, 4)]]
+        elif char == 'J':
+            return NGRAM_PROPERTIES[rand_dict[randint(5, 6)]]
