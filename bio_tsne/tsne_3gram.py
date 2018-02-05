@@ -64,8 +64,4 @@ class BioTsne:
         axarr[1,2].set_title("Charge")
         fig.colorbar(g6, ax=axarr[1,2])
 
-        #set color bar
-
         plt.show()
-
-        f.close()
