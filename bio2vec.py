@@ -24,14 +24,14 @@ if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fna
     pv.word2vec_init(ngram_model_fname)
     pv.save(model_ngram)
 
+    ngram_vectors = pv.get_ngram_vectors("trained_models/ngram_vector.csv")
     with gzip.open(fasta_file, 'rb') as fasta_file:
         with open(protein_model_fname, 'w') as output_file:
             for record in SeqIO.parse(fasta_file, "fasta"):
                 protein_name = record.name.split('|')[-1]
-                protein_vector = pv.to_vecs(record.seq)
+                protein_vector = pv.to_vecs(record.seq, ngram_vectors)
 
                 output_file.write('{}\t{}\n'.format(protein_name, ' '.join(map(str, protein_vector))))
-                pv.save(model_protein)
                 sys.stdout.write(".")
 else:
     print "INFORM : File's Existence is confirmed\n"
