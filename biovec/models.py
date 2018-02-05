@@ -101,15 +101,36 @@ class ProtVec(word2vec.Word2Vec):
     convert sequence to three n-length vectors
     e.g. 'AGAMQSASM' => [ array([  ... * 100 ], array([  ... * 100 ], array([  ... * 100 ] ]
     """
-    def to_vecs(self, seq):
+    def to_vecs(self, seq, ngram_vectors):
         ngrams_seq = split_ngrams(seq, self.n)
 
-        protvecs = np.zeros(self.size, dtype=np.float32)
+
+        protvec = np.zeros(self.size, dtype=np.float32)
+        for index in xrange(len(seq) + 1 - self.n):
+            ngram = seq[index:index + self.n]
+            if ngram in ngram_vectors:
+                ngram_vector = ngram_vectors[ngram]
+                protvec += ngram_vector
+        return normalize(protvec)
+        """
         for ngram_line in ngrams_seq:
             for ngram in ngram_line:
                 try:
-                    ngram_vecs = (self[ngram])
+                    ngram_vecs = self[ngram]
                 except:
                     raise Exception("Model has never trained this n-gram: " + ngram)
                 protvecs += ngram_vecs
         return normalize(protvecs)
+        """
+        
+    def get_ngram_vectors(self, file_path):
+        ngram_vectors = {}
+        vector_length = None
+        with open(file_path) as infile:
+            for line in infile:
+                line_parts = line.rstrip().split()   
+                # skip first line with metadata in word2vec text file format
+                if len(line_parts) > 2:     
+                    ngram, vector_values = line_parts[0], line_parts[1:]          
+                    ngram_vectors[ngram] = np.array(map(float, vector_values), dtype=np.float32)
+        return ngram_vectors
