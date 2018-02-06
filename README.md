@@ -47,3 +47,21 @@ How to install
   - bio_tsne : Visualization protain vectors(TSNE)
 
   - test, trained_models : Just for referances.
+
+
+
+
+How to run  tsne.py
+============
+
+1. Install python packages.
+  - pip install -r requirements.txt
+
+2. run bio2vec
+  - python bio2vec.py
+
+3. run tsne
+  - python tsne.py
+
+4. choose 3gram ro protein
+   just type what you want
