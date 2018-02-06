@@ -45,6 +45,7 @@ def load_protvec(model_fname):
     return word2vec.Word2Vec.load(model_fname)
 
 def normalize(x):
+    print x
     return x / np.sqrt(np.dot(x, x))
 
 class ProtVec(word2vec.Word2Vec):
