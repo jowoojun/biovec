@@ -1,4 +1,5 @@
 from Bio import SeqIO
+from theano import function, config, shared, tensor
 
 import biovec
 import bio_tsne

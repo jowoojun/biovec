@@ -3,18 +3,23 @@ import sys
 import os
 import gzip
 from collections import Counter
-import cPickle as pickle
 
 import numpy as np
-from scipy.spatial.distance import cosine
 from Bio import SeqIO
 
-from sklearn import svm
+from tensorflow.contrib import layers
 from sklearn.model_selection import train_test_split
+from sklearn import metrics
+from tensorflow.contrib.learn.python import SKCompat
+
+from sklearn import svm
+import tensorflow.contrib.learn as skflow
 from sklearn.metrics import log_loss
 from sklearn import preprocessing
 from sklearn.metrics import roc_auc_score, f1_score, accuracy_score, average_precision_score, coverage_error
-from sklearn.model_selection import cross_val_score
+from scipy.spatial.distance import cosine
+import cPickle as pickle
+#from sklearn_theano.model_selection import cross_val_score
 
 
 def get_sample(file_path):
@@ -36,7 +41,8 @@ def get_sample(file_path):
     families_encoded = np.array(label_encoder.transform(families), dtype=np.int32)
     families = None
 
-    vectors_train, vectors_test, families_train, families_test = train_test_split(vectors_array, families_encoded, test_size=0.12,random_state=42)
+    vectors_train, vectors_test, families_train, families_test = train_test_split(vectors_array, families_encoded, test_size=0.2, random_state=42)
+
     vectors_array, families_encoded, families_binary_labels = None, None, None
 
     min_on_training = vectors_train.min(axis=0)
@@ -49,16 +55,15 @@ def get_sample(file_path):
     return label_encoder, vectors_train_scaled, vectors_test_scaled, families_train, families_test
 
 
-def save_model_metrics(model_params_string, model, vectors_test, families_test, label_encoder):
+def save_model_metrics(model_params_string, vectors_test, families_test, predicted_families, label_encoder):
     with open('{}_results.txt'.format(model_params_string), 'w') as outfile:
-        predicted_families = model.predict(vectors_test)
-        outfile.write('score: {}\n'.format(model.score(vectors_test, families_test)))
+        #outfile.write('score: {}\n'.format(model.score(vectors_test, families_test)))
         #print('cross_val_test', cross_val_score(model, vectors_test, families_test, scoring='neg_log_loss'))
         #print('cross_val_train', cross_val_score(model, vectors_train, families_train, scoring='neg_log_loss'))
-        outfile.write('f1_macro: {}\n'.format(f1_score(families_test, predicted_families, average='macro')))
-        outfile.write('f1_micro: {}\n'.format(f1_score(families_test, predicted_families, average='micro')))
-        outfile.write('f1_weighted: {}\n'.format(f1_score(families_test, predicted_families, average='weighted')))
-        outfile.write('accuracy_score: {}\n'.format(accuracy_score(families_test, predicted_families)))
+        #outfile.write('f1_macro: {}\n'.format(f1_score(families_test, predicted_families, average='macro')))
+        #outfile.write('f1_micro: {}\n'.format(f1_score(families_test, predicted_families, average='micro')))
+        #outfile.write('f1_weighted: {}\n'.format(f1_score(families_test, predicted_families, average='weighted')))
+        #outfile.write('accuracy_score: {}\n'.format(metrics.accuracy_score(families_test, predicted_families)))
 
         test_predictions = predicted_families
         prediction_counter = Counter()
@@ -81,24 +86,36 @@ def main():
     args = parser.parse_args()
 
     label_encoder, vectors_train, vectors_test, families_train, families_test = get_sample(args.sample)
-    model = None
+    """
     if args.type == 'svc_linear':
-        model = svm.SVC(kernel='linear', C=1000, gamma=10) 
+        model = svm.SVC(kernel='linear', C=1000, gamma=10)
     elif args.type == 'svc_rbf':
-        model = svm.SVC(kernel='rbf') 
+        model = svm.SVC(kernel='rbf', C=10, gamma=0.1) 
     elif args.type == 'linear_svc':
         model = svm.LinearSVC() 
+    """
+    #feats = skflow.infer_real_valued_columns_from_input(vectors_train)
+    real_feature_column = real_valued_columns("actual_family")
+    sparse_feature_column = sparse_column_with_hash_bucket("predicted_family")
 
-    model.fit(vectors_train, families_train)
+    #classifier_tf = SKCompat(skflow.DNNClassifier(feature_columns=feats, hidden_units=[50,50,50], n_classes=3, model_dir='./'))
 
+    est = SKCompat(estimator)
+    #estimator = SVM(example_id_column='example_id', feature_columns=[real_feature_column, sparse_feature_column], 12_reqularization=10.0)
+
+    classifier_tf.fit(vectors_train, families_train, steps=5000)
+    #est.fit(vectors_train
+
+    predicted_families = list(classifier_tf.predict(vectors_test, as_iterable=True))
+
+    score = metrics.accuracy_score(families_test, predicted_families)
+    print("Accuracy: %f" % score)
 
     model_params_string = '{}_{}'.format(args.type, os.path.basename(args.sample))
-    with open('{}.pkl'.format(model_params_string), 'wb') as outfile:
-        pickle.dump(model, outfile)
+    #with open('{}.pkl'.format(model_params_string), 'wb') as outfile:
+    #    pickle.dump(model, outfile)
 
-    save_model_metrics(model_params_string, model, vectors_test, families_test, label_encoder)
-    print "trained_accurancy: {:.3f}".format(model.score(vectors_train, families_train))
-    print "test_accrurancy  : {:.3f}".format(model.score(vectors_test, families_test)) 
+    save_model_metrics(model_params_string, vectors_test, families_test, predicted_families, label_encoder)
 
     #with open('svm_model.pkl', 'rb') as infile:
     #    model = pickle.load(infile)
