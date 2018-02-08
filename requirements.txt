@@ -40,3 +40,4 @@ tensorflow==1.4.1
 tensorflow-tensorboard==0.4.0
 urllib3==1.22
 Werkzeug==0.14.1
+theano==1.0.1
