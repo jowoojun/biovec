@@ -8,32 +8,27 @@ print "3gram or protein"
 str = raw_input()
 
 if "3gram"==str:
+    
+    print "Loading 3gram vector"
     model_3gram = "./trained_models/ngram_model"
     model = biovec.models.load_protvec(model_3gram)
+    print "... Ok\n"
 
+    print "Making tsne"
     tsne = t3.BioTsne()
+    labels = model.wv.vocab.keys()
+    #print labels
+    property_list = pro.make_property_list(labels)
+    tsne.make_tsne(model)
+    f = open("./trained_models/ngram_2D_vector","rb")
+    vectors = pickle.load(f)
+    final_embedding = tsne.link_with_vector(vectors, property_list)
+    print "... OK\n"
+
+    print "Visualization"
+    tsne.visualization(final_embedding)
 
 else :
-    model_fname = "./trained_models/2017trained_model_protein"
-    model = biovec.models.load_protvec(model_fname)\
-
     tsne = tp.BioTsne()
-
-print "Loading protvec"
-print "... OK\n"
-
-
-print "Making tsne"
-labels = model.wv.vocab.keys()
-#print labels
-property_list = pro.make_property_list(labels)
-tsne.make_tsne(model)
-f = open("./trained_models/ngram_2D_vector","rb")
-vectors = pickle.load(f)
-final_embedding = tsne.link_with_vector(vectors, property_list)
-
-print "... OK\n"
-
-
-print "Visualization"
-tsne.visualization(final_embedding)
+    tsne.make_tsne() 
+    tsne.visualization()
