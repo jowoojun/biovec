@@ -29,27 +29,23 @@ def get_data(sess, path):
     label_encoder.fit(families_str)
     families_encoded = np.array(label_encoder.transform(families_str), dtype=np.int32)
     families_str = None
-    print "a"
-    depth = families_encoded.max()+1
-    tf_onehot = tf.one_hot(families_encoded, depth, on_value=1.0, off_value=0.0)
-    np_onehot = tf_onehot.eval(session=sess)
-    print "b"
-
-    vectors_train, vectors_test, families_train, families_test = train_test_split(vectors_array, families_encoded, test_size=0.25, random_state=1)
-    print "c"
     depth = families_encoded.max()
 
+    #tf_onehot = tf.one_hot(families_encoded, depth, on_value=1.0, off_value=0.0)
+    #np_onehot = tf_onehot.eval(session=sess)
+    
+    vectors_train, vectors_test, families_train, families_test = train_test_split(vectors_array, families_encoded, test_size=0.2, random_state=1)
+
     vectors_array, families_encoded, families_binary_labels = None, None, None
-    print "d"
+    
 
     min_on_training = vectors_train.min(axis=0)
     range_on_training = (vectors_train - min_on_training).max(axis=0)
-    print "e"
+    
 
     vectors_train_scaled = (vectors_train - min_on_training) / range_on_training
     vectors_test_scaled = (vectors_test - min_on_training) / range_on_training
-    print "f"
-
+    
     return label_encoder, vectors_train_scaled, vectors_test_scaled, families_train, families_test, depth
 
     #y_vals = np.array(tf.one_hot(families_encoded, depth, off_value=-1))
@@ -65,12 +61,6 @@ def get_data(sess, path):
 
 def save_model_metrics(model_params_string, vectors_test, families_test, predicted_families, label_encoder):
     with open('{}_results.txt'.format(model_params_string), 'w') as outfile:
-        #outfile.write('score: {}\n'.format(model.score(vectors_test, families_test)))
-        #print('cross_val_test', cross_val_score(model, vectors_test, families_test, scoring='neg_log_loss'))
-        #print('cross_val_train', cross_val_score(model, vectors_train, families_train, scoring='neg_log_loss'))
-        #outfile.write('f1_macro: {}\n'.format(f1_score(families_test, predicted_families, average='macro')))
-        #outfile.write('f1_micro: {}\n'.format(f1_score(families_test, predicted_families, average='micro')))
-        #outfile.write('f1_weighted: {}\n'.format(f1_score(families_test, predicted_families, average='weighted')))
         families_test = tf.argmax(families_test,0)
         predicted_families = tf.argmax(predicted_families, 0)
         outfile.write('accuracy_score: {}\n'.format(metrics.accuracy_score(families_test, predicted_families)))
@@ -100,20 +90,16 @@ def main():
     print "Start getting data..."
     label_encoder, x_vals, x_test, y_vals, y_test, depth = get_data(sess, args.sample)
     print "Done...\n"
-    print x_vals.shape
-    print x_test.shape
-    print y_vals.shape
-    print y_test.shape
-    print depth
+
     batch_size = 100
 
     # Initialize placeholders
     x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32)
-    y_target = tf.placeholder(shape=[depth, None], dtype=tf.float32)
+    y_target = tf.placeholder(shape=[100, None], dtype=tf.float32)
     prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
 
     # Create variables for svm
-    b = tf.Variable(tf.random_normal(shape=[depth,batch_size]))
+    b = tf.Variable(tf.random_normal(shape=[depth, batch_size]))
 
 
     # Gaussian (RBF) kernel
@@ -160,10 +146,12 @@ def main():
     loss_vec = []
     batch_accuracy = []
     for i in range(100):
-        rand_index = np.random.choice(len(x_vals), size=batch_size)
+        rand_index = np.random.choice(len(x_vals), size=batch_size, replace=False)
         rand_x = x_vals[rand_index]
-        rand_y = y_vals[:,rand_index]
-        
+        y = y_vals[rand_index]
+        rand_y = np.reshape(y, (100, -1))
+        print rand_y
+
         sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
 
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
@@ -178,14 +166,16 @@ def main():
 
         if (i+1)%25==0:
             print('Step #' + str(i+1))
-            print('Loss = ' + str(temp_loss))
-            print('accuracy,' + str(acc_temp)) 
+            print(',Loss = ' + str(temp_loss))
+            print(',accuracy = ' + str(acc_temp)) 
+            print('\n')
     
     #predicted_families = sess.run(prediction, feed_dict={x_data: x_test, y_target: y_test, prediction_grid:x_test})
     #print prediction_grid.shape
     #print y_test.shape
     #save_model_metrics("rbf_model", x_test, y_test, predicted_families, label_encoder)
     
+    print depth
 """
     # Create a mesh to plot points in
     x_min, x_max = x_vals[:, 0].min() - 1, x_vals[:, 0].max() + 1
