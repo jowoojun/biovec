@@ -22,19 +22,22 @@ class BioTsne:
             # make tsne # have to use csv file
             #protein csv parsing
             print "Loading protvec"
-            file_path='./trained_models/protein_vector.csv'
-            families = []
-            vectors = []
-            with open(file_path) as infile:
-                for line in infile:
-                    uniprot_id ,  vector_string = line.rstrip().split('\t', 2)
-                    if 
-                    vectors.append(np.array(map(float, vector_string.split()), dtype=np.float32))  
+            path='./trained_models/protein_vector.csv'
 
-            vectors_array = np.array(vectors)
-            vectors = None
+            vectors_float = []
+            with open(path) as protein_vector:
+                for line in protein_vector:
+                    uniprot_id, vector = line.rstrip().split('\t', 1)
+                    vectors_float.append(map(float, vector.split()))
+
+            vectors_array = np.array(vectors_float,ndmin=2)
+            vectors_float = None
+
+            print vectors_array
             print "... OK\n"
 
+            vectors_array=np.nan_to_num(vectors_array)
+            
             print "Making tsne"
             tsne = TSNE(n_components=2)
             X_tsne = tsne.fit_transform(vectors_array)
