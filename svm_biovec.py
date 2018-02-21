@@ -122,6 +122,8 @@ def main():
 
     # Initialize variables
     init = tf.global_variables_initializer()
+    saver = tf.train.Saver()
+    model_path = "trained_models/svm_model.ckpt"
     sess.run(init)
 
     # Training loop
@@ -153,6 +155,9 @@ def main():
             print(',Loss = ' + str(temp_loss))
             print(',accuracy = ' + str(acc_temp)) 
             print('\n')
+
+    print 'total accuracy = ' + str(tf.reduce_mean(batch_accuracy))
+    save_path = saver.save(sess, model_path)
 
     y_test = np.transpose(y_test)
 
