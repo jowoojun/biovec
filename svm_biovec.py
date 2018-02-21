@@ -5,39 +5,35 @@ import os
 import numpy as np
 
 import tensorflow as tf
+import pandas
 from sklearn import preprocessing
 from sklearn import metrics
 from tensorflow.python.framework import ops
 from sklearn.model_selection import train_test_split
 from tensorflow.contrib.learn.python import SKCompat
 from tensorflow.contrib.learn.python.learn.estimators import estimator
+from collections import Counter
+
 ops.reset_default_graph()
 
 def get_data(sess, path):
-    families_str = []
-    vectors_float = []
-    with open(path) as protein_pfam:
-        for line in protein_pfam:
-            uniprot_id, family, vector = line.rstrip().split('\t', 2)
-            families_str.append(family)
-            vectors_float.append(np.array(map(float, vector.split()), dtype=np.float32))
+    dataframe = pandas.read_csv("trained_models/protein_pfam_vector1.csv", header=None)
+    dataset = dataframe.values
+    vectors_array = dataset[:,2:102].astype(float) #vector
+    families_str = dataset[:,1] #family
 
-    vectors_array = np.array(vectors_float)
-    vectors_float = None
 
     label_encoder = preprocessing.LabelEncoder()
     label_encoder.fit(families_str)
     families_encoded = np.array(label_encoder.transform(families_str), dtype=np.int32)
     families_str = None
     depth = families_encoded.max()
-
-    #tf_onehot = tf.one_hot(families_encoded, depth, on_value=1.0, off_value=0.0)
-    #np_onehot = tf_onehot.eval(session=sess)
     
-    vectors_train, vectors_test, families_train, families_test = train_test_split(vectors_array, families_encoded, test_size=0.2, random_state=1)
+    tf_onehot = tf.one_hot(families_encoded, depth, on_value=1.0, off_value=0.0)
+    np_onehot = tf_onehot.eval(session=sess)
 
+    vectors_train, vectors_test, families_train, families_test = train_test_split(vectors_array, np_onehot, random_state=1)
     vectors_array, families_encoded, families_binary_labels = None, None, None
-    
 
     min_on_training = vectors_train.min(axis=0)
     range_on_training = (vectors_train - min_on_training).max(axis=0)
@@ -48,28 +44,15 @@ def get_data(sess, path):
     
     return label_encoder, vectors_train_scaled, vectors_test_scaled, families_train, families_test, depth
 
-    #y_vals = np.array(tf.one_hot(families_encoded, depth, off_value=-1))
-    
-    #for i in range(0, 7200):
-    #    val = np.array([1 if y==i else -1 for y in families_encoded])
-    #    y_vals.append(val)
-    #    i = i + 1
-
-    #b = np.zeros((families_encoded.size, families_encoded.max() + 1))
-    #b[np.arange(families_encoded.size), families_encoded] = 1
-
-
-def save_model_metrics(model_params_string, vectors_test, families_test, predicted_families, label_encoder):
+def save_model_metrics(model_params_string, families_test, predicted_families, label_encoder):
     with open('{}_results.txt'.format(model_params_string), 'w') as outfile:
-        families_test = tf.argmax(families_test,0)
-        predicted_families = tf.argmax(predicted_families, 0)
         outfile.write('accuracy_score: {}\n'.format(metrics.accuracy_score(families_test, predicted_families)))
 
         test_predictions = predicted_families
         prediction_counter = Counter()
         for index, predicted_family in enumerate(predicted_families):
-            predicted_family = label_encoder.inverse_transform(predicted_family)
-            actual_family = label_encoder.inverse_transform(families_test[index])
+            predicted_family = label_encoder.inverse_transform(predicted_family.astype('int64'))
+            actual_family = label_encoder.inverse_transform(families_test[index].astype('int64'))
             prediction_counter[actual_family==predicted_family] += 1
             outfile.write('actual_family={} predicted_family={} correct={}\n'.format(
                                                                                      actual_family, 
@@ -81,8 +64,7 @@ def save_model_metrics(model_params_string, vectors_test, families_test, predict
 
 def main():
     parser = argparse.ArgumentParser('Trains SVM model over protein vectors')
-    parser.add_argument('--sample', type=str, default='./trained_models/protein_pfam_vector.csv')
-    #parser.add_argument('--type', type=str, default='svc_linear')
+    parser.add_argument('--sample', type=str, default='./trained_models/protein_pfam_vector1.csv')
     args = parser.parse_args()
 
     sess = tf.Session()
@@ -95,7 +77,7 @@ def main():
 
     # Initialize placeholders
     x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32)
-    y_target = tf.placeholder(shape=[100, None], dtype=tf.float32)
+    y_target = tf.placeholder(shape=[depth, None], dtype=tf.float32)
     prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
 
     # Create variables for svm
@@ -103,7 +85,7 @@ def main():
 
 
     # Gaussian (RBF) kernel
-    gamma = tf.constant(-10.0)
+    gamma = tf.constant(-5.0)
     dist = tf.reduce_sum(tf.square(x_data), 1)
     dist = tf.reshape(dist, [-1,1])
     sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
@@ -145,15 +127,17 @@ def main():
     # Training loop
     loss_vec = []
     batch_accuracy = []
+    y_vals = np.transpose(y_vals)
     for i in range(100):
         rand_index = np.random.choice(len(x_vals), size=batch_size, replace=False)
         rand_x = x_vals[rand_index]
-        y = y_vals[rand_index]
-        rand_y = np.reshape(y, (100, -1))
-        print rand_y
+        rand_y = y_vals[:,rand_index]
 
-        sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
-
+        sess.run(train_step, feed_dict={
+            x_data: rand_x, 
+            y_target: rand_y}
+        )
+        
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
         loss_vec.append(temp_loss)
 
@@ -169,13 +153,28 @@ def main():
             print(',Loss = ' + str(temp_loss))
             print(',accuracy = ' + str(acc_temp)) 
             print('\n')
+
+    y_test = np.transpose(y_test)
+
+    used_test_y = np.zeros(shape=(0))
+    predicted = np.zeros(shape=(0))
+
+    for i in range(10):
+        rand_index = np.random.choice(len(x_test), size=batch_size, replace=False)
+        rand_x = x_test[rand_index]
+        rand_y = y_test[:,rand_index]
+
+        predicted_families = sess.run(prediction, feed_dict={x_data: rand_x, 
+                                                             y_target: rand_y, 
+                                                             prediction_grid:rand_x})
+        rand_y = tf.argmax(rand_y, 0)
+        rand_y = rand_y.eval(session=sess)
+
+        used_test_y = np.append(used_test_y, rand_y)
+        predicted = np.append(predicted, predicted_families)
+
+    save_model_metrics("rbf_model",  used_test_y, predicted, label_encoder)
     
-    #predicted_families = sess.run(prediction, feed_dict={x_data: x_test, y_target: y_test, prediction_grid:x_test})
-    #print prediction_grid.shape
-    #print y_test.shape
-    #save_model_metrics("rbf_model", x_test, y_test, predicted_families, label_encoder)
-    
-    print depth
 """
     # Create a mesh to plot points in
     x_min, x_max = x_vals[:, 0].min() - 1, x_vals[:, 0].max() + 1
