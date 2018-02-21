@@ -10,14 +10,12 @@ from sklearn import preprocessing
 from sklearn import metrics
 from tensorflow.python.framework import ops
 from sklearn.model_selection import train_test_split
-from tensorflow.contrib.learn.python import SKCompat
-from tensorflow.contrib.learn.python.learn.estimators import estimator
 from collections import Counter
 
 ops.reset_default_graph()
 
 def get_data(sess, path):
-    dataframe = pandas.read_csv("trained_models/protein_pfam_vector1.csv", header=None)
+    dataframe = pandas.read_csv("../trained_models/protein_pfam_vector1.csv", header=None)
     dataset = dataframe.values
     vectors_array = dataset[:,2:102].astype(float) #vector
     families_str = dataset[:,1] #family
@@ -64,7 +62,7 @@ def save_model_metrics(model_params_string, families_test, predicted_families, l
 
 def main():
     parser = argparse.ArgumentParser('Trains SVM model over protein vectors')
-    parser.add_argument('--sample', type=str, default='./trained_models/protein_pfam_vector1.csv')
+    parser.add_argument('--sample', type=str, default='../trained_models/protein_pfam_vector1.csv')
     args = parser.parse_args()
 
     sess = tf.Session()
@@ -121,16 +119,16 @@ def main():
     train_step = my_opt.minimize(loss)
 
     # Initialize variables
+    model_path = "/tmp/svm.ckpt"
     init = tf.global_variables_initializer()
-    saver = tf.train.Saver()
-    model_path = "trained_models/svm_model.ckpt"
     sess.run(init)
+    saver = tf.train.Saver()
 
     # Training loop
     loss_vec = []
     batch_accuracy = []
     y_vals = np.transpose(y_vals)
-    for i in range(100):
+    for i in range(1000):
         rand_index = np.random.choice(len(x_vals), size=batch_size, replace=False)
         rand_x = x_vals[rand_index]
         rand_y = y_vals[:,rand_index]
@@ -158,7 +156,8 @@ def main():
 
     print 'total accuracy = ' + str(tf.reduce_mean(batch_accuracy))
     save_path = saver.save(sess, model_path)
-
+    print ("Model saved in path: %s" % save_path)
+"""
     y_test = np.transpose(y_test)
 
     used_test_y = np.zeros(shape=(0))
@@ -180,7 +179,7 @@ def main():
 
     save_model_metrics("rbf_model",  used_test_y, predicted, label_encoder)
     
-"""
+
     # Create a mesh to plot points in
     x_min, x_max = x_vals[:, 0].min() - 1, x_vals[:, 0].max() + 1
     y_min, y_max = x_vals[:, 1].min() - 1, x_vals[:, 1].max() + 1
