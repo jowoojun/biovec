@@ -10,3 +10,6 @@ ngram_corpus.txt
 /.pytest_cache
 .env
 /trained_models1
+pdb_seqres.fasta
+disprot.json
+
