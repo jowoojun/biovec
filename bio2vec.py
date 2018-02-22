@@ -1,6 +1,7 @@
 from Bio import SeqIO
 from theano import function, config, shared, tensor
 
+from collections import Counter
 import biovec
 import bio_tsne
 import tensorflow as tf
@@ -20,12 +21,7 @@ protein_model_fname = "trained_models/protein_vector.csv"
 model_ngram = "trained_models/ngram_model"
 model_protein = "trained_models/protein_model"
 
-if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fname):
-    print 'INFORM : There is no vector model file. Generate model files from data file...'
-    pv.word2vec_init(ngram_model_fname)
-    pv.save(model_ngram)
-
-    ngram_vectors = pv.get_ngram_vectors("trained_models/ngram_vector.csv")
+def open_gzip_fasta(fasta_file, protein_model_fname):
     with gzip.open(fasta_file, 'rb') as fasta_file:
         with open(protein_model_fname, 'w') as output_file:
             for record in SeqIO.parse(fasta_file, "fasta"):
@@ -33,7 +29,30 @@ if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fna
                 protein_vector = pv.to_vecs(record.seq, ngram_vectors)
 
                 output_file.write('{}\t{}\n'.format(protein_name, ' '.join(map(str, protein_vector))))
-                sys.stdout.write(".")
+
+def get_uniprot_protein_families(path):
+    protein_families = {}
+    protein_family_stat = Counter()
+    for record in SeqIO.parse(path, "fasta"): 
+        family_id = None
+        for element in record.description.split():
+            if element.startswith('PFAM'):
+                family_id = element.split('=', 1)[1]
+        if family_id:
+            uniprot_id = record.name.split('|')[-1]
+            protein_families[uniprot_id] = family_id
+            protein_family_stat[family_id] += 1
+
+    return protein_families, protein_family_stat
+
+if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fname):
+    print 'INFORM : There is no vector model file. Generate model files from data file...'
+    pv.word2vec_init(ngram_model_fname)
+    pv.save(model_ngram)
+
+    ngram_vectors = pv.get_ngram_vectors("trained_models/ngram_vector.csv")
+    open_gzip_fasta(fasta_file, protein_model_fname)
+
 else:
     print "INFORM : File's Existence is confirmed\n"
 
@@ -45,34 +64,20 @@ protein_pfam_model_fname = "trained_models/protein_pfam_vector.csv"
 if not os.path.isfile(protein_pfam_model_fname):
     print 'INFORM : There is no pfam_model file. Generate pfam_model files from data file...'
 
+    min_proteins_in_family = 20
     pf = biovec.Pfam()
-    min_count = 20
-    protein_family_dict, number_of_protein_in_family = pf.pfam_parser("./document/Pfam-A.fasta.gz")
-
-    """
-    print "Making the file(protein_pfam_vector.fasta)"
-    protein_pfam_fasta_fname = "trained_models/protein_pfam_vector.fasta"
-
-    with gzip.open(fasta_file, 'rb') as fasta_file:
-        with open(protein_pfam_fasta_fname, 'w') as output_file:
-            for record in SeqIO.parse(fasta_file, "fasta"):
-                protein_name = record.name.split('|')[2]
-                if protein_name in protein_family_dict:
-                    record.description += ' PFAM={}'.format(protein_family_dict[protein_name])
-                    SeqIO.write(record, output_file, "fasta")
-                #sys.stdout.write(".")
-    print "...OK\n"
-    """
+    uniprot_with_families = "trained_models/uniprot_with_families.fasta"
+    pf.make_uniport_with_families()
+    protein_families, protein_family_stat = get_uniprot_protein_families(uniprot_with_families)
 
     f = open(protein_pfam_model_fname, "w")
     with open(protein_model_fname) as protein_vector_file:
         for line in protein_vector_file:
             uniprot_name, vector_string = line.rstrip().split('\t', 1)
-            if uniprot_name in protein_family_dict:
-                family_name = protein_family_dict[uniprot_name]
-                if number_of_protein_in_family[family_name] >= min_count:
-                    f.write('{}\t{}\t{}'.format(uniprot_name, protein_family_dict[uniprot_name], vector_string) + "\n")
-            #sys.stdout.write(".")
+            if uniprot_name in protein_families:
+                family = protein_families[uniprot_name]
+                if protein_family_stat[family] >= min_proteins_in_family:
+                    f.write('{}\t{}\t{}'.format(uniprot_name, protein_families[uniprot_name], vector_string) + "\n")
     f.close()
 
 print "... Done\n"
