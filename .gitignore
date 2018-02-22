@@ -9,3 +9,4 @@ ngram_corpus.txt
 /trained_models
 /.pytest_cache
 .env
+/trained_models1
