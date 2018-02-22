@@ -15,32 +15,45 @@ from collections import Counter
 ops.reset_default_graph()
 
 def get_data(sess, path):
-    dataframe = pandas.read_csv("../trained_models/protein_pfam_vector1.csv", header=None)
+    print("Read_csv...")
+    dataframe = pandas.read_csv(path, header=None)
     dataset = dataframe.values
-    vectors_array = dataset[:,2:102].astype(float) #vector
-    families_str = dataset[:,1] #family
+    family = dataset[:,1]
+    vectors = dataset[:,2:].astype(float)
+    print("Done...\n")
 
+    # Sampling data  = 40%
+    print("Data sampling...")
+    sample_indices = np.random.choice(len(vectors), round(len(vectors)*0.4), replace=False)
+    else_indices = np.array(list(set(range(len(vectors))) - set(sample_indices)))
+    vectors_sample = vectors[sample_indices]
+    vectors_else = vectors[else_indices]
+    family_sample = family[sample_indices]
+    family_else = family[else_indices]
+    print("Done...\n")
 
+    vectors_else, family_else = None, None
+
+    print("Labeling...")
     label_encoder = preprocessing.LabelEncoder()
-    label_encoder.fit(families_str)
-    families_encoded = np.array(label_encoder.transform(families_str), dtype=np.int32)
-    families_str = None
+    label_encoder.fit(family_sample)
+    families_encoded = np.array(label_encoder.transform(family_sample), dtype=np.int32)
+    family_sample = None
     depth = families_encoded.max()
-    
+    print("Done...\n")
+
+    print("One hot Encoding...")
     tf_onehot = tf.one_hot(families_encoded, depth, on_value=1.0, off_value=0.0)
     np_onehot = tf_onehot.eval(session=sess)
+    print("Done...\n")
 
-    vectors_train, vectors_test, families_train, families_test = train_test_split(vectors_array, np_onehot, random_state=1)
-    vectors_array, families_encoded, families_binary_labels = None, None, None
-
-    min_on_training = vectors_train.min(axis=0)
-    range_on_training = (vectors_train - min_on_training).max(axis=0)
+    min_on_training = vectors_sample.min(axis=0)
+    range_on_training = (vectors_sample - min_on_training).max(axis=0)
     
 
-    vectors_train_scaled = (vectors_train - min_on_training) / range_on_training
-    vectors_test_scaled = (vectors_test - min_on_training) / range_on_training
+    vectors_train_scaled = (vectors_sample - min_on_training) / range_on_training
     
-    return label_encoder, vectors_train_scaled, vectors_test_scaled, families_train, families_test, depth
+    return label_encoder, vectors_train_scaled, np_onehot, depth
 
 def save_model_metrics(model_params_string, families_test, predicted_families, label_encoder):
     with open('{}_results.txt'.format(model_params_string), 'w') as outfile:
@@ -62,14 +75,14 @@ def save_model_metrics(model_params_string, families_test, predicted_families, l
 
 def main():
     parser = argparse.ArgumentParser('Trains SVM model over protein vectors')
-    parser.add_argument('--sample', type=str, default='../trained_models/protein_pfam_vector1.csv')
+    parser.add_argument('--sample', type=str, default='../trained_models/protein_pfam_vector.csv')
     args = parser.parse_args()
 
     sess = tf.Session()
 
-    print "Start getting data..."
-    label_encoder, x_vals, x_test, y_vals, y_test, depth = get_data(sess, args.sample)
-    print "Done...\n"
+    print ("Start getting data...")
+    label_encoder, x_vals, y_vals, depth = get_data(sess, args.sample)
+    print ("Done...\n")
 
     batch_size = 100
 
@@ -119,7 +132,7 @@ def main():
     train_step = my_opt.minimize(loss)
 
     # Initialize variables
-    model_path = "/tmp/svm.ckpt"
+    model_path = "../trained_models/svm.ckpt"
     init = tf.global_variables_initializer()
     sess.run(init)
     saver = tf.train.Saver()
@@ -128,7 +141,7 @@ def main():
     loss_vec = []
     batch_accuracy = []
     y_vals = np.transpose(y_vals)
-    for i in range(1000):
+    for i in range(100):
         rand_index = np.random.choice(len(x_vals), size=batch_size, replace=False)
         rand_x = x_vals[rand_index]
         rand_y = y_vals[:,rand_index]
@@ -154,63 +167,9 @@ def main():
             print(',accuracy = ' + str(acc_temp)) 
             print('\n')
 
-    print 'total accuracy = ' + str(tf.reduce_mean(batch_accuracy))
+    print ('total accuracy = ' + str(tf.reduce_mean(batch_accuracy)))
     save_path = saver.save(sess, model_path)
     print ("Model saved in path: %s" % save_path)
-"""
-    y_test = np.transpose(y_test)
-
-    used_test_y = np.zeros(shape=(0))
-    predicted = np.zeros(shape=(0))
-
-    for i in range(10):
-        rand_index = np.random.choice(len(x_test), size=batch_size, replace=False)
-        rand_x = x_test[rand_index]
-        rand_y = y_test[:,rand_index]
-
-        predicted_families = sess.run(prediction, feed_dict={x_data: rand_x, 
-                                                             y_target: rand_y, 
-                                                             prediction_grid:rand_x})
-        rand_y = tf.argmax(rand_y, 0)
-        rand_y = rand_y.eval(session=sess)
-
-        used_test_y = np.append(used_test_y, rand_y)
-        predicted = np.append(predicted, predicted_families)
-
-    save_model_metrics("rbf_model",  used_test_y, predicted, label_encoder)
-    
-
-    # Create a mesh to plot points in
-    x_min, x_max = x_vals[:, 0].min() - 1, x_vals[:, 0].max() + 1
-    y_min, y_max = x_vals[:, 1].min() - 1, x_vals[:, 1].max() + 1
-    xx, yy = np.meshgrid(np.arange(x_min, x_max, 0.02),
-                         np.arange(y_min, y_max, 0.01))
-    print type(xx.ravel())
-    grid_points = np.c_[xx.ravel(), yy.ravel()]
-
-    ravel = []
-    print type(ravel)
-    for i in range(0, 100):
-        x_min, x_max = x_vals[:, i].min() - 1, x_vals[:, i].max() + 1
-        xx = np.array[np.meshgrid(np.arange(x_min, x_max, 0.02))]
-        print xx.ravel()
-        print type(xx.ravel())
-        i = i + 1
-
-    grid_points = np.c_[ravel]
-    
-    print rand_x.shape
-    print rand_y.shape
-    print grid_points.shape
-    
-    grid_predictions = sess.run(prediction, feed_dict={x_data: rand_x,
-                                                       y_target: rand_y,
-                                                       prediction_grid: grid_points})
-    grid_predictions = grid_predictions.reshape(xx.shape)
-
-    print grid_points
-    print ("grid_predict: {}".format(grid_predictions))
-"""
 
 if __name__ == '__main__':
     main()
