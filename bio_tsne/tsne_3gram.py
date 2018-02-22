@@ -20,8 +20,6 @@ class BioTsne:
             # make tsne
             X = model[model.wv.vocab]
             tsne = TSNE(n_components=2)
-            print X
-            print "\n\n\n\n"
             X_tsne = tsne.fit_transform(X)
 
             # save X_tsne
