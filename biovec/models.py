@@ -45,7 +45,6 @@ def load_protvec(model_fname):
     return word2vec.Word2Vec.load(model_fname)
 
 def normalize(x):
-    print x
     return x / np.sqrt(np.dot(x, x))
 
 class ProtVec(word2vec.Word2Vec):
@@ -75,20 +74,20 @@ class ProtVec(word2vec.Word2Vec):
         directory = out.split('/')[0]
         if not os.path.exists(directory):
             os.makedirs(directory)
-            print "directory(trained_models) created\n"
+            print("directory(trained_models) created\n")
 
         if corpus is None and corpus_fname is None:
             raise Exception("Either corpus_fname or corpus is needed!")
 
         if corpus_fname is not None:
-            print 'Now we are checking whether corpus file exist'
+            print ('Now we are checking whether corpus file exist')
             if not os.path.isfile(out):
-                print 'INFORM : There is no corpus file. Generate Corpus file from fasta file...'
+                print ('INFORM : There is no corpus file. Generate Corpus file from fasta file...')
                 generate_corpusfile(corpus_fname, n, out)
             else:
-                print "INFORM : File's Existence is confirmed"
+                print( "INFORM : File's Existence is confirmed")
             self.corpus = word2vec.Text8Corpus(out)
-            print "\n... OK\n"
+            print ("\n... OK\n")
 
     def word2vec_init(self, ngram_model_fname):
         word2vec.Word2Vec.__init__(self, self.corpus, size=self.size, sg=self.sg, window=self.window, min_count=self.min_count, workers=self.workers)
