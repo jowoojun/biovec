@@ -13,7 +13,7 @@ with open('./disprot.fasta','w') as disprot_fasta:
             f_name = pfam['id']
         
         sequence = disprot['sequence']
-        data = '>%s %s\n%s\n'%(name,f_name,sequence)
+        data = '>%s|%s\n%s\n'%(name,f_name,sequence)
         disprot_fasta.write(data) 
 
 disprot_fasta.close()
