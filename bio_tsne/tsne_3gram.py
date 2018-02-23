@@ -16,14 +16,15 @@ class BioTsne:
 
     # making tsne
     def make_tsne(self, model):
-        if not os.path.isfile("./trained_models/ngram_2D_vector"):
+        file_path="./trained_models/2D_vec/ngram_2D_vector"
+        if not os.path.isfile(file_path):
             # make tsne
             X = model[model.wv.vocab]
             tsne = TSNE(n_components=2)
             X_tsne = tsne.fit_transform(X)
 
             # save X_tsne
-            f = open("./trained_models/ngram_2D_vector","wb")
+            f = open(file_path,"wb")
             pickle.dump(X_tsne , f)
 
             f.close()

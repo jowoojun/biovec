@@ -20,7 +20,7 @@ if "3gram"==str:
     #print labels
     property_list = pro.make_property_list(labels)
     tsne.make_tsne(model)
-    f = open("./trained_models/ngram_2D_vector","rb")
+    f = open("./trained_models/2D_vec/ngram_2D_vector","rb")
     vectors = pickle.load(f)
     final_embedding = tsne.link_with_vector(vectors, property_list)
     print "... OK\n"
