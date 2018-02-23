@@ -91,9 +91,7 @@ class ProtVec(word2vec.Word2Vec):
 
     def word2vec_init(self, ngram_model_fname):
         word2vec.Word2Vec.__init__(self, self.corpus, size=self.size, sg=self.sg, window=self.window, min_count=self.min_count, workers=self.workers)
-        model = word2vec.Word2Vec([line.rstrip().split() for line in open(self.out)], min_count =
-                 self.min_count, size=self.size, sg=self.sg,
-                 window=self.window)
+        model = word2vec.Word2Vec(vocab = [line.rstrip().split() for line in open(self.out)], min_count = 1, size=self.size, sg=self.sg, window=self.window)
         model.wv.save_word2vec_format(ngram_model_fname)
     
     def to_vecs(self, seq, ngram_vectors):

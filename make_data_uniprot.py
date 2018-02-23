@@ -2,7 +2,7 @@ from Bio import SeqIO
 from theano import function, config, shared, tensor
 
 from collections import Counter
-import biovec
+import word2vec
 import bio_tsne
 import tensorflow as tf
 import numpy as np
@@ -55,17 +55,17 @@ def make_uniport_with_families(Pfam_file, fasta_file, uniprot_with_families):
 
 fasta_file = "document/uniprot_sprot.fasta.gz"
 Pfam_file = "document/Pfam-A.fasta.gz"
-ngram_corpus_fname = "trained_models/ngram_vector.txt"
+ngram_corpus_fname = "trained_models/ngram_vector.csv"
 model_ngram = "trained_models/ngram_model"
-protein_vector_fname = "trained_models/protein_vector.txt"
+protein_vector_fname = "trained_models/protein_vector.csv"
 uniprot_with_families = "trained_models/uniprot_with_families.fasta"
 protein_pfam_vector_fname = "trained_models/protein_pfam_vector.csv"
 
 #Make corpus
-pv = biovec.ProtVec(fasta_file, out="trained_models/ngram_corpus.txt")
+pv = word2vec.ProtVec(fasta_file, out="trained_models/ngram_corpus.txt")
 
 print ("Checking the file(trained_models/ngram_vector.csv)")
-if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fname):
+if not os.path.isfile(ngram_corpus_fname) or not os.path.isfile(protein_vector_fname):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     
     #Make ngram_vector.txt and word2vec model
@@ -92,7 +92,7 @@ if not os.path.isfile(protein_pfam_vector_fname):
     min_proteins_in_family = 10
 
     #Make uniprot_with_family.fasta by uniprot, Pfam
-    make_uniport_with_families(Pfam_file, fasta_file, uniprot_with_families): 
+    make_uniport_with_families(Pfam_file, fasta_file, uniprot_with_families)
 
     #Get protein_name, family_name, vectors
     protein_families, protein_family_stat = get_uniprot_protein_families(uniprot_with_families)
@@ -110,11 +110,11 @@ if not os.path.isfile(protein_pfam_vector_fname):
     f.close()
 
 print ("...Uniprot Done\n")
-
+"""
 print("Start disprot...\n")
 
 disprot_fasta = "document/disprot.fasta.gz"
-dpv = biovec.ProtVec(disprot_fasta,
+dpv = word2vec.ProtVec(disprot_fasta,
                      out="trained_models/disprot/disprot_ngram_corpus.txt")
 
 print ("Checking the file(trained_models/ngram_vector.csv)")
@@ -156,4 +156,4 @@ else:
 print ("...OK\n")
 
 #===============================================================================#
-
+"""
