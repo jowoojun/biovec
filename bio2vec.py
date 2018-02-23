@@ -14,7 +14,7 @@ fasta_file = "document/uniprot_sprot.fasta.gz"
 pv = biovec.ProtVec(fasta_file,
                     out="trained_models/ngram_corpus.txt")
 
-print "Checking the file(trained_models/ngram_vector.csv)"
+print ("Checking the file(trained_models/ngram_vector.csv)")
 ngram_model_fname = "trained_models/ngram_vector.csv"
 protein_model_fname = "trained_models/protein_vector.csv"
 
@@ -48,7 +48,7 @@ def get_uniprot_protein_families(path):
 
 # uniport
 if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fname):
-    print 'INFORM : There is no vector model file. Generate model files from data file...'
+    print ('INFORM : There is no vector model file. Generate model files from data file...')
     pv.word2vec_init(ngram_model_fname)
     pv.save(model_ngram)
 
@@ -56,12 +56,9 @@ if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fna
     open_gzip_fasta(fasta_file, protein_model_fname)
 
 else:
-    print "INFORM : File's Existence is confirmed\n"
+    print("INFORM : File's Existence is confirmed\n")
 
-print "...OK\n"
-
-
-
+print ("...OK\n")
 
 
 #================================================================================#
@@ -111,14 +108,13 @@ print "...OK\n"
 #===============================================================================#
 
 
-
-print "Checking the file(trained_models/protein_pfam_vector.csv)"
+print("Checking the file(trained_models/protein_pfam_vector.csv)")
 protein_pfam_model_fname = "trained_models/protein_pfam_vector.csv"
 
 if not os.path.isfile(protein_pfam_model_fname):
-    print 'INFORM : There is no pfam_model file. Generate pfam_model files from data file...'
+    print ('INFORM : There is no pfam_model file. Generate pfam_model files from data file...')
 
-    min_proteins_in_family = 20
+    min_proteins_in_family = 10
     pf = biovec.Pfam()
     uniprot_with_families = "trained_models/uniprot_with_families.fasta"
     pf.make_uniport_with_families()
@@ -134,4 +130,4 @@ if not os.path.isfile(protein_pfam_model_fname):
                     f.write('{}\t{}\t{}'.format(uniprot_name, protein_families[uniprot_name], vector_string) + "\n")
     f.close()
 
-print "... Done\n"
+print ("... Done\n")

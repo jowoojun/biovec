@@ -22,24 +22,18 @@ def get_data(sess, path):
     vectors = dataset[:,2:].astype(float)
     print("Done...\n")
 
-    import collections
-    print (collections.Counter(family))
-    
     # Sampling data  = 30%
     print("Data sampling...")
     sample_indices = np.random.choice(len(vectors), round(len(vectors)*1.0), replace=False)
-    #else_indices = np.array(list(set(range(len(vectors))) - set(sample_indices)))
+    else_indices = np.array(list(set(range(len(vectors))) - set(sample_indices)))
     data_sample = dataset[sample_indices]
     vectors_sample = dataset[sample_indices,2:]
     #vectors_else = vectors[else_indices]
     family_sample = dataset[sample_indices,1]
     #family_else = family[else_indices]
     print("Done...\n")
-    
 
-
-        
-    vectors_else, family_else = None, None
+    #vectors_else, family_else = None, None
 
     print("Labeling...")
     label_encoder = preprocessing.LabelEncoder()
