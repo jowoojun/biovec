@@ -19,7 +19,6 @@ ngram_model_fname = "trained_models/ngram_vector.csv"
 protein_model_fname = "trained_models/protein_vector.csv"
 
 model_ngram = "trained_models/ngram_model"
-model_protein = "trained_models/protein_model"
 
 def open_gzip_fasta(fasta_file, protein_model_fname):
     with gzip.open(fasta_file, 'rb') as fasta_file:
@@ -45,6 +44,9 @@ def get_uniprot_protein_families(path):
 
     return protein_families, protein_family_stat
 
+
+
+# uniport
 if not os.path.isfile(ngram_model_fname) or not os.path.isfile(protein_model_fname):
     print 'INFORM : There is no vector model file. Generate model files from data file...'
     pv.word2vec_init(ngram_model_fname)
@@ -57,6 +59,58 @@ else:
     print "INFORM : File's Existence is confirmed\n"
 
 print "...OK\n"
+
+
+
+
+
+#================================================================================#
+
+disprot_fasta = "document/disprot.fasta.gz"
+dpv = biovec.ProtVec(disprot_fasta,
+                     out="trained_models/disprot/disrprot_ngram_corpus.txt")
+
+#print "Checking the file(trained_models/ngram_vector.csv)"
+
+# disprot
+disprot_ngram = "trained_models/disprot/disprot_ngram.csv"
+disprot_protein = "trained_models/disprot/disprot_protein.csv"
+if not os.path.isfile(disprot_ngram) or not os.path.isfile(disprot_protein):
+    print 'INFORM : There is no vector model file. Generate model files from data file...'
+    dpv.word2vec_init(disprot_ngram)
+    #dpv.save(model_ngram)
+
+    ngram_vectors = dpv.get_ngram_vectors(disprot_ngram)
+    open_gzip_fasta(disprot_fasta, disprot_protein)
+
+else:
+    print "INFORM : File's Existence is confirmed\n"
+
+print "...OK\n"
+
+
+# pdb
+pdb_fasta= "document/uniprot_sprot.fasta.gz"
+ppv = biovec.ProtVec(fasta_file,out="trained_models/pdb/pdb_ngram_corpus.txt")
+
+pdb_ngram = "trained_models/pdb/pdb_ngram.csv"
+pdb_protein = "trained_models/pdb/pdb_protein.csv"
+if not os.path.isfile(pdb_ngram) or not os.path.isfile(pdb_protein):
+    print 'INFORM : There is no vector model file. Generate model files from data file...'
+    ppv.word2vec_init(pdb_ngram)
+    #pv.save(model_ngram)
+
+    ngram_vectors = ppv.get_ngram_vectors(pdb_ngram)
+    open_gzip_fasta(pdb_fasta, pdb_protein)
+
+else:
+    print "INFORM : File's Existence is confirmed\n"
+
+print "...OK\n"
+
+#===============================================================================#
+
+
 
 print "Checking the file(trained_models/protein_pfam_vector.csv)"
 protein_pfam_model_fname = "trained_models/protein_pfam_vector.csv"
