@@ -99,7 +99,7 @@ if not os.path.isfile(protein_pfam_vector_fname):
 
 
     #Make protein_pfam_vector_fname.csv by protein_name, family_name, vectors
-    f = open(protein_pfam_model_fname, "w")
+    f = open(protein_pfam_vector_fname, "w")
     with open(protein_vector_fname) as protein_vector_file:
         for line in protein_vector_file:
             uniprot_name, vector_string = line.rstrip().split('\t', 1)
@@ -110,7 +110,7 @@ if not os.path.isfile(protein_pfam_vector_fname):
     f.close()
 
 print ("...Uniprot Done\n")
-"""
+
 print("Start disprot...\n")
 
 disprot_fasta = "document/disprot.fasta.gz"
@@ -128,7 +128,7 @@ if not os.path.isfile(disprot_ngram) or not os.path.isfile(disprot_protein):
     #dpv.save(model_ngram)
 
     ngram_vectors = dpv.get_ngram_vectors(disprot_ngram)
-    open_gzip_fasta(disprot_fasta, disprot_protein)
+    make_protein_vector(disprot_fasta, disprot_protein,ngram_vectors)
 
 else:
     print ("INFORM : File's Existence is confirmed\n")
@@ -138,7 +138,7 @@ print ("...OK\n")
 
 # pdb
 pdb_fasta= "document/uniprot_sprot.fasta.gz"
-ppv = biovec.ProtVec(fasta_file,out="trained_models/pdb/pdb_ngram_corpus.txt")
+ppv = word2vec.ProtVec(fasta_file,out="trained_models/pdb/pdb_ngram_corpus.txt")
 
 pdb_ngram = "trained_models/pdb/pdb_ngram.csv"
 pdb_protein = "trained_models/pdb/pdb_protein.csv"
@@ -148,7 +148,7 @@ if not os.path.isfile(pdb_ngram) or not os.path.isfile(pdb_protein):
     #pv.save(model_ngram)
 
     ngram_vectors = ppv.get_ngram_vectors(pdb_ngram)
-    open_gzip_fasta(pdb_fasta, pdb_protein)
+    make_protein_vector(pdb_fasta, pdb_protein , ngram_vectors)
 
 else:
     print ("INFORM : File's Existence is confirmed\n")
@@ -156,4 +156,3 @@ else:
 print ("...OK\n")
 
 #===============================================================================#
-"""
