@@ -95,12 +95,7 @@ class ProtVec(word2vec.Word2Vec):
                  self.min_count, size=self.size, sg=self.sg,
                  window=self.window)
         model.wv.save_word2vec_format(ngram_model_fname)
-
-
-    """
-    convert sequence to three n-length vectors
-    e.g. 'AGAMQSASM' => [ array([  ... * 100 ], array([  ... * 100 ], array([  ... * 100 ] ]
-    """
+    
     def to_vecs(self, seq, ngram_vectors):
         ngrams_seq = split_ngrams(seq, self.n)
 
@@ -112,16 +107,6 @@ class ProtVec(word2vec.Word2Vec):
                 ngram_vector = ngram_vectors[ngram]
                 protvec += ngram_vector
         return normalize(protvec)
-        """
-        for ngram_line in ngrams_seq:
-            for ngram in ngram_line:
-                try:
-                    ngram_vecs = self[ngram]
-                except:
-                    raise Exception("Model has never trained this n-gram: " + ngram)
-                protvecs += ngram_vecs
-        return normalize(protvecs)
-        """
         
     def get_ngram_vectors(self, file_path):
         ngram_vectors = {}

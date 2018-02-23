@@ -24,12 +24,9 @@ def get_data(sess, path):
 
     # Sampling data  = 40%
     print("Data sampling...")
-    sample_indices = np.random.choice(len(vectors), round(len(vectors)*0.4), replace=False)
-    else_indices = np.array(list(set(range(len(vectors))) - set(sample_indices)))
+    sample_indices = np.random.choice(len(vectors), int(round(len(vectors)*1.0)), replace=False)
     vectors_sample = vectors[sample_indices]
-    vectors_else = vectors[else_indices]
     family_sample = family[sample_indices]
-    family_else = family[else_indices]
     print("Done...\n")
 
     vectors_else, family_else = None, None

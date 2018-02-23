@@ -24,13 +24,9 @@ def get_data(sess, path):
 
     # Sampling data  = 30%
     print("Data sampling...")
-    sample_indices = np.random.choice(len(vectors), round(len(vectors)*1.0), replace=False)
-    else_indices = np.array(list(set(range(len(vectors))) - set(sample_indices)))
-    data_sample = dataset[sample_indices]
-    vectors_sample = dataset[sample_indices,2:]
-    #vectors_else = vectors[else_indices]
-    family_sample = dataset[sample_indices,1]
-    #family_else = family[else_indices]
+    sample_indices = np.random.choice(len(vectors), int(round(len(vectors)*0.99)), replace=False)
+    vectors_sample = vectors[sample_indices]
+    family_sample = family[sample_indices]
     print("Done...\n")
 
     #vectors_else, family_else = None, None
@@ -80,15 +76,14 @@ def save_model_metrics(model_params_string, families_test, predicted_families, l
                     predicted_family_and_num[predicted_family] += 1
                 else:
                     predicted_family_and_num[predicted_family] = 1
-        print (predicted_family_and_num)
 
         for x in actual_family_and_num:
             actual = actual_family_and_num[x]
             if not x in predicted_family_and_num:
                 predicted_family_and_num[x] = 0
             predicted = predicted_family_and_num[x]
-            acc = predicted / actual
-            outfile.write('{}\t\t{}\t\t{}\t\t{}\n'.format(x, actual, predicted, acc))
+            acc = float(predicted) / float(actual)
+            outfile.write('{}\t\t{}\t\t{}\t\t{:f}\n'.format(x, actual, predicted, acc))
             #outfile.write('actual_family={} predicted_family={} correct={}\n'.format(actual_family, predicted_family, actual_family==predicted_family))
 
         tp_rate = float(prediction_counter[True]) / sum(prediction_counter.values())
@@ -104,7 +99,7 @@ def main():
     print ("Start getting data...")
     label_encoder, x_test, y_test, num_of_families = get_data(sess, args.sample)
     print ("Done...\n")
-    depth = 6971
+    depth = 2675
     batch_size = 100
 
     # Initialize placeholders
@@ -167,12 +162,13 @@ def main():
     used_test_y = np.zeros(shape=(0))
     predicted = np.zeros(shape=(0))
 
-    for i in range(500):
+    for i in range(1000):
         rand_index = np.random.choice(len(x_test), size=batch_size, replace=False)
         rand_x = x_test[rand_index]
         rand_y = y_test[:,rand_index]
-        redundancy = [[0 for col in range(batch_size)] for row in range(depth-num_of_families)]
-        rand_y = np.concatenate([rand_y, redundancy])
+        if depth != num_of_families:
+            redundancy = [[0 for col in range(batch_size)] for row in range(depth-num_of_families)]
+            rand_y = np.concatenate([rand_y, redundancy])
        
         acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x,
                                                  y_target: rand_y,
