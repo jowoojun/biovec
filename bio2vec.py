@@ -64,7 +64,7 @@ protein_pfam_model_fname = "trained_models/protein_pfam_vector.csv"
 if not os.path.isfile(protein_pfam_model_fname):
     print ('INFORM : There is no pfam_model file. Generate pfam_model files from data file...')
 
-    min_proteins_in_family = 20
+    min_proteins_in_family = 10
     pf = biovec.Pfam()
     uniprot_with_families = "trained_models/uniprot_with_families.fasta"
     pf.make_uniport_with_families()
