@@ -43,7 +43,7 @@ class Pfam:
         #        outfile.write('{}\t{}\n'.format(family, number_of_proteins))
 
         min_proteins_in_family = 20
-        with gzip.open('../document/uniprot_sprot.fasta.gz', 'rb') as gzipped_file, \
+        with gzip.open('document/uniprot_sprot.fasta.gz', 'rb') as gzipped_file, \
         open("trained_models/uniprot_with_families.fasta", "w") as output_fasta:
             for record in SeqIO.parse(gzipped_file, "fasta"):
                 uniprot_id = record.name.split('|')[2] 
