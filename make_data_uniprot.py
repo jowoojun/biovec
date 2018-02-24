@@ -62,6 +62,9 @@ def make_uniport_with_families(Pfam_file, fasta_file, uniprot_with_families):
                 SeqIO.write(record, output_fasta, "fasta")
 
 def make_protein_pfam_vector_for_uniprot(protein_pfam_vector_fname, protein_vector_fname, protein_families, protein_family_stat):
+    #Cut standard
+    min_proteins_in_family = 0
+
     f = open(protein_pfam_vector_fname, "w")
     with open(protein_vector_fname) as protein_vector_file:
         for line in protein_vector_file:
@@ -74,11 +77,13 @@ def make_protein_pfam_vector_for_uniprot(protein_pfam_vector_fname, protein_vect
 
 
 def make_protein_pfam_vector_for_other(protein_pfam_vector_fname, protein_vector_fname, fasta_file):
+    #Cut standard
+    min_proteins_in_family = 10
+
     protein_families = {}
     f = open(protein_pfam_vector_fname, "w")
     with open(protein_vector_fname) as protein_vector_file, gzip.open(fasta_file, 'rb') as gzipped_fasta:
         for record in SeqIO.parse(gzipped_fasta, "fasta"):
-            print (record.name)
             gz_protein_name, gz_family= record.name.rstrip().split(' ', 1)
             protein_families[gz_protein_name] = gz_family
         
@@ -124,9 +129,6 @@ print("Checking the file(trained_models/protein_pfam_vector.csv)")
 if not os.path.isfile(protein_pfam_vector_fname):
     print ('INFORM : There is no pfam_model file. Generate pfam_model files from data file...')
     
-    #Cut standard
-    min_proteins_in_family = 10
-
     #Make uniprot_with_family.fasta by uniprot, Pfam
     make_uniport_with_families(Pfam_file, fasta_file, uniprot_with_families)
 
