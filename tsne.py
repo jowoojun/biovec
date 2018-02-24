@@ -30,5 +30,17 @@ if "3gram"==str:
 
 else :
     tsne = tp.BioTsne()
-    tsne.make_tsne() 
-    tsne.visualization()
+    
+    # make disprot tsne
+    disprot_2D  = "./trained_models/disprot/disprot_2D" 
+    disprot_vec = "./trained_models/disprot/disprot_protein.csv" 
+    tsne.make_tsne(disprot_2D , disprot_vec) 
+    
+    # make pdb tsne
+    pdb_2D  = "./trained_models/pdb/pdb_2D"
+    pdb_vec = "./trained_models/pdb/pdb_protein.csv"
+    tsne.make_tsne(pdb_2D , pdb_vec) 
+    
+    #visualization disprot and pdb
+
+    tsne.visualization(disprot_2D , pdb_2D)

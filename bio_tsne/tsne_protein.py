@@ -17,14 +17,12 @@ class BioTsne:
 
         
     # making tsne
-    def make_tsne(self):
-        file_path="./trained_models/2D_vec/protein_2D_vector"
+    def make_tsne(self,file_path,path):
         
         if not os.path.isfile(file_path):
             # make tsne # have to use csv file
             #protein csv parsing
             print "Loading protvec"
-            path='./trained_models/protein_vector.csv'
 
             vectors_float = []
             with open(path) as protein_vector:
@@ -48,21 +46,25 @@ class BioTsne:
             print "Saving tsne"
             # save X_tsne
             
-            f = open(filepath,"wb")
+            f = open(file_path,"wb")
             pickle.dump(X_tsne , f)
             f.close()
             print "... OK\n"
 
-    def visualization(self):
+    def visualization( self, disprot_path , pdb_path ):
         # load X_tsne data
-        file_path="./trained_models/2D_vec/protein_2D_vector"
         
-        f = open( file_path , "rb")
-        X_tsne = pickle.load(f)
+        f = open( disprot_path , "rb")
+        disprot = pickle.load(f)
+        f.close()
 
-        plt.scatter(X_tsne[:,0], X_tsne[:, 1])
+        f = open( pdb_path , "rb")
+        pdb = pickle.load(f)
+        f.close()
+
+        plt.scatter(disprot[:,0], disprot[:, 1])
+#        plt.scatter(pdb[:,0], pdb[:, 1])
         plt.show()
 
-        f.close()
         return 0
 
