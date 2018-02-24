@@ -78,20 +78,22 @@ def make_protein_pfam_vector_for_uniprot(protein_pfam_vector_fname, protein_vect
 
 def make_protein_pfam_vector_for_other(protein_pfam_vector_fname, protein_vector_fname, fasta_file):
     #Cut standard
-    min_proteins_in_family = 10
+    min_proteins_in_family = 0
 
     protein_families = {}
     f = open(protein_pfam_vector_fname, "w")
     with open(protein_vector_fname) as protein_vector_file, gzip.open(fasta_file, 'rb') as gzipped_fasta:
         for record in SeqIO.parse(gzipped_fasta, "fasta"):
-            gz_protein_name, gz_family= record.name.rstrip().split(' ', 1)
+            gz_protein_name, gz_family = record.description.rstrip().split(' ', 1)
+            print (gz_protein_name)
+            print (gz_family)
             protein_families[gz_protein_name] = gz_family
         
         for line in protein_vector_file:
             protein_name, vector_string = line.rstrip().split('\t', 1)
             if protein_name in protein_families:
                 family = protein_families[protein_name]
-                f.write('{}\t{}\t{}'.format(protein_name, protein_families[uniprot_name], vector_string) + "\n")
+                f.write('{}\t{}\t{}'.format(protein_name, protein_families[protein_name], vector_string) + "\n")
     f.close()
 
 fasta_file = "document/uniprot_sprot.fasta.gz"
@@ -153,7 +155,7 @@ disprot_fasta = "document/disprot.fasta.gz"
 dpv = word2vec.ProtVec(disprot_fasta,
                      out="trained_models/disprot/disprot_ngram_corpus.txt")
 
-print ("Checking the file(trained_models/ngram_vector.csv)")
+print ("Checking the file(trained_models/disprot_ngram.csv)")
 
 disprot_ngram = "trained_models/disprot/disprot_ngram.csv"
 disprot_protein = "trained_models/disprot/disprot_protein.csv"
@@ -161,7 +163,6 @@ disprot_pfam_vector_fname = "trained_models/disprot/disprot_pfam_vector.csv"
 if not os.path.isfile(disprot_ngram) or not os.path.isfile(disprot_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     dpv.word2vec_init(disprot_ngram)
-    #dpv.save(model_ngram)
 
     ngram_vectors = dpv.get_ngram_vectors(disprot_ngram)
     make_protein_vector_for_other(disprot_fasta, disprot_protein,ngram_vectors)
@@ -210,16 +211,6 @@ else:
     print ("INFORM : File's Existence is confirmed\n")
 
 print ("...OK\n")
-
-print("Checking the file(trained_models/pdb_pfam_vector.csv)")
-if not os.path.isfile(pdb_pfam_vector_fname):
-    print ('INFORM : There is no pfam_model file. Generate pfam_model files from data file...')
-    
-    #Cut standard
-    min_proteins_in_family = 10
-
-    #Make protein_pfam_vector_fname.csv by protein_name, family_name, vectors
-    make_protein_pfam_vector_for_other(pdb_pfam_vector_fname, pdb_protein, pdb_fasta)
 
 print ("...Pdb Done\n")
 
