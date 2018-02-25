@@ -58,7 +58,7 @@ def save_model_metrics(model_params_string, families_test, predicted_families, l
     predicted_family_and_num = dict()
     with open('{}_results.txt'.format(model_params_string), 'w') as outfile:
         outfile.write('accuracy_score: {}\n'.format(metrics.accuracy_score(families_test, predicted_families)))
-
+        confusion = metrics.confusion_matrix(families_test, predicted_families)
         test_predictions = predicted_families
         prediction_counter = Counter()
 
@@ -77,13 +77,22 @@ def save_model_metrics(model_params_string, families_test, predicted_families, l
                 else:
                     predicted_family_and_num[predicted_family] = 1
 
-        for x in actual_family_and_num:
-            actual = actual_family_and_num[x]
-            if not x in predicted_family_and_num:
-                predicted_family_and_num[x] = 0
-            predicted = predicted_family_and_num[x]
+        for index, actual_family in enumerate(actual_family_and_num):
+            actual = actual_family_and_num[actual_family]
+            if not actual_family in predicted_family_and_num:
+                predicted_family_and_num[actual_family] = 0
+            predicted = predicted_family_and_num[actual_family]
+            TP = confusion[index, index]
+            FP = np.sum(confusion[index,:]) - TP
+            FN = np.sum(confusion[:,index]) - TP
+            TN = np.sum(confusion) - FN - FP - TP
+
             acc = float(predicted) / float(actual)
-            outfile.write('{}\t\t{}\t\t{}\t\t{:f}\n'.format(x, actual, predicted, acc))
+            acc_temp = float(TP + TN)/ float(TP + FP + TN + FN)
+            sensitivity = float(TP) / float(TP + FP)
+            specificity = float(TN) / float(FN + TN)
+
+            outfile.write('{}\t{}\t{}\t{:f}\t{:f}\t{:f}\t{:f}\n'.format(actual_family, actual, predicted, acc, sensitivity, specificity, acc_temp))
             #outfile.write('actual_family={} predicted_family={} correct={}\n'.format(actual_family, predicted_family, actual_family==predicted_family))
 
         tp_rate = float(prediction_counter[True]) / sum(prediction_counter.values())
