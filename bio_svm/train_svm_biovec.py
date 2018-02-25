@@ -138,8 +138,9 @@ def main():
     loss_vec = []
     batch_accuracy = []
     y_vals = np.transpose(y_vals)
-    for i in range(100):
-        rand_index = np.random.choice(len(x_vals), size=batch_size, replace=False)
+    for i in range(1000):
+        #rand_index = np.random.choice(len(x_vals), size=batch_size, replace=False)
+        rand_index = np.random.choice(len(x_vals), size=batch_size)
         rand_x = x_vals[rand_index]
         rand_y = y_vals[:,rand_index]
 

@@ -99,7 +99,7 @@ def main():
     print ("Start getting data...")
     label_encoder, x_test, y_test, num_of_families = get_data(sess, args.sample)
     print ("Done...\n")
-    depth = 2675
+    depth = 23
     batch_size = 100
 
     # Initialize placeholders
@@ -162,8 +162,9 @@ def main():
     used_test_y = np.zeros(shape=(0))
     predicted = np.zeros(shape=(0))
 
-    for i in range(1000):
-        rand_index = np.random.choice(len(x_test), size=batch_size, replace=False)
+    for i in range(100):
+        #rand_index = np.random.choice(len(x_test), size=batch_size, replace=False)
+        rand_index = np.random.choice(len(x_test), size=batch_size)
         rand_x = x_test[rand_index]
         rand_y = y_test[:,rand_index]
         if depth != num_of_families:
