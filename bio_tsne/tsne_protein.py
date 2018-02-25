@@ -62,8 +62,13 @@ class BioTsne:
         pdb = pickle.load(f)
         f.close()
 
-        plt.scatter(disprot[:,0], disprot[:, 1])
-#        plt.scatter(pdb[:,0], pdb[:, 1])
+        fig , ax = plt.subplots()
+
+        d = ax.scatter(disprot[:,0], disprot[:, 1],c='r')
+        p = ax.scatter(pdb[:,0], pdb[:, 1] , c='b')
+        
+        l = ax.legend([d, p], ['disprot', 'pdb'], scatterpoints=1,
+               numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)})
         plt.show()
 
         return 0
