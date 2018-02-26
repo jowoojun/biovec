@@ -5,10 +5,6 @@ from sklearn import datasets
 from tensorflow.python.framework import ops
 import pandas as df
 
-import argparse
-import sys
-import os
-
 from sklearn import preprocessing
 from sklearn import metrics
 from sklearn.model_selection import KFold
@@ -18,7 +14,7 @@ ops.reset_default_graph()
 sess = tf.Session()
 
 # Importing the dataset
-dataframe = df.read_csv("/home/soonmok/2018-study/2017Bio2Vec/trained_models/protein_pfam_vector.csv", header=None)
+dataframe = df.read_csv("./trained_models/protein_pfam_vector.csv", header=None)
 dataset = dataframe.values
 family = dataset[:, 1]
 vectors = dataset[:,2:].astype(float)
@@ -94,44 +90,39 @@ sess.run(init)
 
 # Training loop
 loss_vec = []
-train_batch_accuracy = []
 test_batch_accuracy = []
 
 #K fold cross validation
 for train_index, test_index in kfold.split(vectors, sparse_one_hot.toarray()):
     
     train_set, test_set = vectors[train_index], vectors[test_index]
-    encoded_train_label, encoded_test_label = sparse_one_hot[train_index].toarray(), sparse_one_hot[test_index]
-    
-    for i in range(100):
-        rand_index = np.random.choice(len(train_set), size=batch_size, replace=False)
-        rand_x = vectors[rand_index]
-        rand_y = sparse_one_hot[rand_index].toarray().transpose()
+    encoded_train_label, encoded_test_label = sparse_one_hot[train_index].toarray(), sparse_one_hot[test_index].toarray()
+    i = 0
+    while (i + 1) * batch_size < len(train_set):
+        index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
+        rand_x = train_set[index]
+        rand_y = encoded_train_label[index].transpose()
         
         sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
         
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
         loss_vec.append(temp_loss)
-        
-        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
-        train_batch_accuracy.append(acc_temp)
+        i += 1
         
         if (i+1)%25==0:
             print('train_Step #' + str(i+1))
-            print(',Loss = ' + str(temp_loss))
-            print(',train_accuracy = ' + str(acc_temp)) 
-            print('\n')
+            print('Loss = ' + str(temp_loss))
             
-            
-    for i in range(100):
-        rand_index = np.random.choice(len(test_set), size=batch_size, replace=False)
-        rand_x = vectors[rand_index]
-        rand_y = sparse_one_hot[rand_index].toarray().transpose()
+    i = 0
+    while (i + 1) * batch_size < len(test_set):
+        index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
+        rand_x = test_set[index]
+        rand_y = encoded_test_label[index].transpose()
         
         sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
         
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
-        loss_vec.append(temp_loss)
+        loss_vec.append(temp_loss)   
         
         acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
         test_batch_accuracy.append(acc_temp)
@@ -142,7 +133,12 @@ for train_index, test_index in kfold.split(vectors, sparse_one_hot.toarray()):
             print(',test_accuracy = ' + str(acc_temp)) 
             print('\n')
             
+        i += 1
 
-    
-print('Accuracy on train set: ' + str(sum(train_batch_accuracy) / float(len(train_batch_accuracy))))
-print('Accuracy on test set: ' + str(sum(test_batch_accuracy) / float(len(test_batch_accuracy))))
+    print('Batch accuracy: ' + str(acc_temp))
+    print('\n')
+    print('\n')
+
+print('Total accuracy: ' + str(sum(test_batch_accuracy) / float(len(test_batch_accuracy))))
+print('\n')
+print('\n')
