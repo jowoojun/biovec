@@ -20,6 +20,7 @@ def get_data(sess, path):
     dataset = dataframe.values
     family = dataset[:,1]
     vectors = dataset[:,2:].astype(float)
+    data_size = len(family)
     print("Done...\n")
 
     # Sampling data  = 40%
@@ -29,7 +30,7 @@ def get_data(sess, path):
     family_sample = family[sample_indices]
     print("Done...\n")
 
-    vectors_else, family_else = None, None
+    #vectors_else, family_else = None, None
 
     print("Labeling...")
     label_encoder = preprocessing.LabelEncoder()
@@ -50,7 +51,7 @@ def get_data(sess, path):
 
     vectors_train_scaled = (vectors_sample - min_on_training) / range_on_training
     
-    return label_encoder, vectors_train_scaled, np_onehot, depth
+    return label_encoder, vectors_train_scaled, np_onehot, depth, data_size
 
 def save_model_metrics(model_params_string, families_test, predicted_families, label_encoder):
     with open('{}_results.txt'.format(model_params_string), 'w') as outfile:
@@ -78,10 +79,12 @@ def main():
     sess = tf.Session()
 
     print ("Start getting data...")
-    label_encoder, x_vals, y_vals, depth = get_data(sess, args.sample)
+    label_encoder, x_vals, y_vals, depth, data_size = get_data(sess, args.sample)
     print ("Done...\n")
 
     batch_size = 100
+    learning_rate = 0.01
+    training_epochs = 5
 
     # Initialize placeholders
     x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32)
@@ -125,47 +128,52 @@ def main():
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
 
     # Declare optimizer
-    my_opt = tf.train.GradientDescentOptimizer(0.01)
-    train_step = my_opt.minimize(loss)
+    my_opt = tf.train.GradientDescentOptimizer(learning_rate)
+    optimizer = my_opt.minimize(loss)
 
     # Initialize variables
     model_path = "../trained_models/svm.ckpt"
     init = tf.global_variables_initializer()
+
+    #b_summary = tf.summary.scalar('b', b)
+    loss_summary = tf.summary.scalar('loss', loss)
+    accuracy_summary = tf.summary.scalar('accuracy', accuracy)
+    merged_summary = tf.summary.merge_all()
+    
     sess.run(init)
     saver = tf.train.Saver()
+    
+    summary_writer = tf.summary.FileWriter('./logs', sess.graph)
 
     # Training loop
     loss_vec = []
     batch_accuracy = []
     y_vals = np.transpose(y_vals)
-    for i in range(1000):
+    total_batch = int(data_size / batch_size)
+    for i in range(total_batch):
         #rand_index = np.random.choice(len(x_vals), size=batch_size, replace=False)
-        rand_index = np.random.choice(len(x_vals), size=batch_size)
+        #rand_index = np.random.choice(len(x_vals), size=batch_size)
+        rand_index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
         rand_x = x_vals[rand_index]
         rand_y = y_vals[:,rand_index]
 
-        sess.run(train_step, feed_dict={
-            x_data: rand_x, 
-            y_target: rand_y}
-        )
-        
+        sess.run(optimizer, feed_dict={x_data: rand_x, y_target: rand_y})
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
-        loss_vec.append(temp_loss)
 
-        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x,
-                                             y_target: rand_y,
-                                             prediction_grid:rand_x})
-
-
+        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid:rand_x})
         batch_accuracy.append(acc_temp)
 
-        if (i+1)%25==0:
-            print('Step #' + str(i+1))
-            print(',Loss = ' + str(temp_loss))
-            print(',accuracy = ' + str(acc_temp)) 
-            print('\n')
+        summary = sess.run(merged_summary, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+        summary_writer.add_summary(summary, i)
+        
+        #if (i+1)==0:
+        print('Step #' + str(i+1))
+        print(',Loss = ' + str(temp_loss))
+        print(',accuracy = ' + str(acc_temp)) 
+        print('\n')
 
-    print ('total accuracy = ' + str(tf.reduce_mean(batch_accuracy)))
+
+    print ('total accuracy = ' + str(tf.reduce_mean(batch_accuracy).eval(session=sess)))
     save_path = saver.save(sess, model_path)
     print ("Model saved in path: %s" % save_path)
 
