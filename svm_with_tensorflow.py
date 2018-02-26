@@ -11,7 +11,7 @@ import os
 
 from sklearn import preprocessing
 from sklearn import metrics
-from sklearn.model_selection import StratifiedKFold
+from sklearn.model_selection import KFold
 ops.reset_default_graph()
 
 # Create graph
@@ -23,15 +23,10 @@ dataset = dataframe.values
 family = dataset[:, 1]
 vectors = dataset[:,2:].astype(float)
 
-# Sampling data  = 20%
-# =============================================================================
-# sample_indices = np.random.choice(len(vectors), round(len(vectors)*0.02), replace=False)
-# vectors_sample = vectors[sample_indices]
-# family_sample = family[sample_indices]
-# =============================================================================
 
 seed = 7
-kfold = StratifiedKFold(n_splits=10, shuffle=True, random_state=seed)
+kfold = KFold(n_splits=10, shuffle=True, random_state=seed)
+
 
 # Encoding categorical data
 from sklearn.preprocessing import LabelEncoder
@@ -40,18 +35,15 @@ family_label_encoding = labelencoder_Family.fit_transform(family)
 depth = family_label_encoding.max()+1
     
 
-
+#one hot encoded and make sparse matrix
 from scipy.sparse import csc_matrix
 rows = np.arange(family_label_encoding.size)
 cols = family_label_encoding
 data = np.ones(family_label_encoding.size)
 sparse_one_hot = csc_matrix((data, (rows, cols)), shape=(family_label_encoding.size, family_label_encoding.max()+1))
 
-# concatening vectors with labels(encoded with integer)
-import scipy
-encoded_dataset = scipy.sparse.hstack((vectors, sparse_one_hot))
 
-batch_size = 100
+batch_size = 250
 
 # Initialize placeholders
 x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32)
@@ -62,7 +54,7 @@ prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
 b = tf.Variable(tf.random_normal(shape=[depth, batch_size]))
 
 # Gaussian (RBF) kernel
-gamma = tf.constant(-10.0)
+gamma = tf.constant(-100.0)
 dist = tf.reduce_sum(tf.square(x_data), 1)
 dist = tf.reshape(dist, [-1,1])
 sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
@@ -102,15 +94,19 @@ sess.run(init)
 
 # Training loop
 loss_vec = []
-batch_accuracy = []
+train_batch_accuracy = []
+test_batch_accuracy = []
 
-for train_index, test_index in kfold.split(encoded_dataset):
+#K fold cross validation
+for train_index, test_index in kfold.split(vectors, sparse_one_hot.toarray()):
+    
+    train_set, test_set = vectors[train_index], vectors[test_index]
+    encoded_train_label, encoded_test_label = sparse_one_hot[train_index].toarray(), sparse_one_hot[test_index]
     
     for i in range(100):
-        rand_index = np.random.choice(len(train), size=batch_size, replace=False)
+        rand_index = np.random.choice(len(train_set), size=batch_size, replace=False)
         rand_x = vectors[rand_index]
-        one_hot = sparse_one_hot[rand_index].toarray()
-        rand_y = one_hot[:,rand_index]
+        rand_y = sparse_one_hot[rand_index].toarray().transpose()
         
         sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
         
@@ -118,10 +114,35 @@ for train_index, test_index in kfold.split(encoded_dataset):
         loss_vec.append(temp_loss)
         
         acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
-        batch_accuracy.append(acc_temp)
+        train_batch_accuracy.append(acc_temp)
         
         if (i+1)%25==0:
-            print('Step #' + str(i+1))
+            print('train_Step #' + str(i+1))
             print(',Loss = ' + str(temp_loss))
-            print(',accuracy = ' + str(acc_temp)) 
+            print(',train_accuracy = ' + str(acc_temp)) 
             print('\n')
+            
+            
+    for i in range(100):
+        rand_index = np.random.choice(len(test_set), size=batch_size, replace=False)
+        rand_x = vectors[rand_index]
+        rand_y = sparse_one_hot[rand_index].toarray().transpose()
+        
+        sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
+        
+        temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
+        loss_vec.append(temp_loss)
+        
+        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
+        test_batch_accuracy.append(acc_temp)
+        
+        if (i+1)%25==0:
+            print('test_Step #' + str(i+1))
+            print(',Loss = ' + str(temp_loss))
+            print(',test_accuracy = ' + str(acc_temp)) 
+            print('\n')
+            
+
+    
+print('Accuracy on train set: ' + str(sum(train_batch_accuracy) / float(len(train_batch_accuracy))))
+print('Accuracy on test set: ' + str(sum(test_batch_accuracy) / float(len(test_batch_accuracy))))
