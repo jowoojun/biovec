@@ -126,12 +126,18 @@ def main():
     init = tf.global_variables_initializer()
     sess.run(init)
 
-    #b_summary = tf.summary.scalar('b', b)
+    # model save declaration
+    model_path = "../trained_models/svm.ckpt"
+    saver = tf.train.Saver()
+    
+    # Tensorboard declaration
+    loss_summary = tf.summary.scalar('loss', loss)
+    accuracy_summary = tf.summary.scalar('accuracy', accuracy)
+    merged_summary = tf.summary.merge_all()
 
-    sess.run(init)
+    summary_writer = tf.summary.FileWriter('./logs', sess.graph)
 
-
-    # Training loop
+    # loss and accuracy array declaration
     loss_vec = []
     test_batch_accuracy = []
     
@@ -141,10 +147,10 @@ def main():
     
     #K fold cross validation
     for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
-        
         train_set, test_set = x_vals[train_index], x_vals[test_index]
         sparse_encoded_train_label, sparse_encoded_test_label = y_vals[train_index], y_vals[test_index]
         i = 0
+
         while (i + 1) * batch_size < len(train_set):
             index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
             rand_x = train_set[index]
@@ -154,6 +160,7 @@ def main():
             
             temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
             loss_vec.append(temp_loss)
+
             i += 1
             
             if (i+1)%25==0:
@@ -166,12 +173,14 @@ def main():
             rand_x = test_set[index]
             np_y = sparse_encoded_test_label[index].toarray()
             rand_y = np_y.transpose()
-            acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
+            #acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
+            acc_temp, summary = sess.run([accuracy, merged_summary], feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
             test_batch_accuracy.append(acc_temp)
+            
+            summary_writer.add_summary(summary, i)
             
             if (i+1)%25==0:
                 print('test_Step #' + str(i+1))
-                print(',Loss = ' + str(temp_loss))
                 print(',test_accuracy = ' + str(acc_temp)) 
                 print('\n')
                 
@@ -180,9 +189,10 @@ def main():
         print('Batch accuracy: ' + str(acc_temp))
         print('\n')
         print('\n')
-    
-    print('Total accuracy: ' + str(sum(test_batch_accuracy) / float(len(test_batch_accuracy))))
-    print('\n')
+    print(test_batch_accuracy)
+    print('Total accuracy: ' + str(float(sum(test_batch_accuracy)) / float(len(test_batch_accuracy))))
+    save_path = saver.save(sess, model_path)
+    print ("Model saved in path: %s" % save_path)
     print('\n')
 
 if __name__ == '__main__':
