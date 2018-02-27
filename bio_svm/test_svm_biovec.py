@@ -1,15 +1,12 @@
 import argparse
-import sys
-import os
-
 import numpy as np
 
 import tensorflow as tf
 import pandas
+from scipy.sparse import csc_matrix
 from sklearn import preprocessing
 from sklearn import metrics
 from tensorflow.python.framework import ops
-from sklearn.model_selection import train_test_split
 from collections import Counter
 
 ops.reset_default_graph()
@@ -22,34 +19,27 @@ def get_data(sess, path):
     vectors = dataset[:,2:].astype(float)
     print("Done...\n")
 
-    # Sampling data  = 30%
-    print("Data sampling...")
-    sample_indices = np.random.choice(len(vectors), int(round(len(vectors)*0.99)), replace=False)
-    vectors_sample = vectors[sample_indices]
-    family_sample = family[sample_indices]
-    print("Done...\n")
-
-    #vectors_else, family_else = None, None
-
     print("Labeling...")
     label_encoder = preprocessing.LabelEncoder()
-    label_encoder.fit(family_sample)
-    families_encoded = np.array(label_encoder.transform(family_sample), dtype=np.int32)
-    family_sample = None
-    depth = families_encoded.max()
+    label_encoder.fit(family)
+    families_encoded = np.array(label_encoder.transform(family), dtype=np.int32)
+    family = None
+    depth = families_encoded.max() + 1
     print("Done...\n")
 
     print("One hot Encoding...")
-    tf_onehot = tf.one_hot(families_encoded, depth, on_value=1.0, off_value=0.0)
-    np_onehot = tf_onehot.eval(session=sess)
+    rows = np.arange(families_encoded.size)
+    cols = families_encoded
+    data = np.ones(families_encoded.size)
+    np_onehot = csc_matrix((data, (rows, cols)), shape=(families_encoded.size, families_encoded.max()+1))
     print("Done...\n")
 
 
-    min_on_training = vectors_sample.min(axis=0)
-    range_on_training = (vectors_sample - min_on_training).max(axis=0)
+    min_on_training = vectors.min(axis=0)
+    range_on_training = (vectors - min_on_training).max(axis=0)
     
 
-    vectors_train_scaled = (vectors_sample - min_on_training) / range_on_training
+    vectors_train_scaled = (vectors - min_on_training) / range_on_training
     
     return label_encoder, vectors_train_scaled, np_onehot, depth
 
@@ -59,7 +49,6 @@ def save_model_metrics(model_params_string, families_test, predicted_families, l
     with open('{}_results.txt'.format(model_params_string), 'w') as outfile:
         outfile.write('accuracy_score: {}\n'.format(metrics.accuracy_score(families_test, predicted_families)))
         confusion = metrics.confusion_matrix(families_test, predicted_families)
-        test_predictions = predicted_families
         prediction_counter = Counter()
 
         for index, predicted_family in enumerate(predicted_families):
@@ -107,7 +96,7 @@ def main():
     sess = tf.Session()
 
     print ("Start getting data...")
-    label_encoder, x_test, y_test, num_of_families = get_data(sess, args.sample)
+    label_encoder, x_test, y_test_sparse, num_of_families = get_data(sess, args.sample)
     print ("Done...\n")
     depth = 581
     batch_size = 100
@@ -117,30 +106,11 @@ def main():
     y_target = tf.placeholder(shape=[depth, None], dtype=tf.float32)
     prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
     
+    # Initialize gamma
+    gamma = tf.constant(-5.0)
+    
     # Create variables for svm
     b = tf.Variable(tf.random_normal(shape=[depth, batch_size]))
-
-
-    # Gaussian (RBF) kernel
-    gamma = tf.constant(-5.0)
-    dist = tf.reduce_sum(tf.square(x_data), 1)
-    dist = tf.reshape(dist, [-1,1])
-    sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
-    my_kernel = tf.exp(tf.multiply(gamma, tf.abs(sq_dists)))
-
-    # Declare function to do reshape/batch multiplication
-    def reshape_matmul(mat):
-        v1 = tf.expand_dims(mat, 1)
-        v2 = tf.reshape(v1, [depth, batch_size, 1])
-        return(tf.matmul(v2, v1))
-
-    # Compute SVM Model
-    first_term = tf.reduce_sum(b)
-    b_vec_cross = tf.matmul(tf.transpose(b), b)
-    y_target_cross = reshape_matmul(y_target)
-    
-    second_term = tf.reduce_sum(tf.multiply(my_kernel, tf.multiply(b_vec_cross, y_target_cross)),[1,2])
-    loss = tf.reduce_sum(tf.negative(tf.subtract(first_term, second_term)))
 
     # Gaussian (RBF) prediction kernel
     rA = tf.reshape(tf.reduce_sum(tf.square(x_data), 1),[-1,1])
@@ -153,52 +123,36 @@ def main():
 
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
 
-    # Declare optimizer
-    my_opt = tf.train.GradientDescentOptimizer(0.01)
-    train_step = my_opt.minimize(loss)
-
     # Initialize variables
     save_path = "../trained_models/svm.ckpt"
-    init = tf.global_variables_initializer()
-    sess.run(init)
     saver = tf.train.Saver()
+    init = tf.global_variables_initializer()
+
 
     # test_model
     sess.run(init)
     saver.restore(sess, save_path)
     print ("Model restored from file: %s" %save_path)
 
-    y_test = np.transpose(y_test)
-    used_test_y = np.zeros(shape=(0))
-    predicted = np.zeros(shape=(0))
-
-    for i in range(100):
-        #rand_index = np.random.choice(len(x_test), size=batch_size, replace=False)
-        rand_index = np.random.choice(len(x_test), size=batch_size)
-        rand_x = x_test[rand_index]
-        rand_y = y_test[:,rand_index]
-        if depth != num_of_families:
-            redundancy = [[0 for col in range(batch_size)] for row in range(depth-num_of_families)]
-            rand_y = np.concatenate([rand_y, redundancy])
-       
-        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x,
-                                                 y_target: rand_y,
-                                                 prediction_grid:rand_x})
-
-        predicted_families = sess.run(prediction, feed_dict={x_data: rand_x, 
-                                                             y_target: rand_y, 
-                                                             prediction_grid:rand_x})
-        rand_y = tf.argmax(rand_y, 0)
-        rand_y = rand_y.eval(session=sess)
-
-        used_test_y = np.append(used_test_y, rand_y)
-        predicted = np.append(predicted, predicted_families)
-        if (i+1)%25==0:
-            print('Step #' + str(i+1))
-            print('accuracy = ' + str(acc_temp)) 
-            print('\n')
-
-    save_model_metrics("rbf_model",  used_test_y, predicted, label_encoder)
+    
+    # Testing loop
+    i = 0
+    test_batch_accuracy = []
+    while (i + 1) * batch_size < len(x_test):
+        
+        index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
+        rand_x = x_test[index]
+        np_y = y_test_sparse[index].toarray()
+        rand_y = np_y.transepose()
+        
+        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
+        test_batch_accuracy.append(acc_temp)
+        print('Batch accuracy: ' + str(acc_temp))
+        print('\n')
+        print('\n')
+        i += 1
+    print('total accuracy : ' + str(sum(test_batch_accuracy) / float(len(test_batch_accuracy))))
+    #save_model_metrics("rbf_model",  used_test_y, predicted, label_encoder)
 
 if __name__=='__main__':
     main()

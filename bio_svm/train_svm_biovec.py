@@ -66,7 +66,7 @@ def save_model_metrics(model_params_string, families_test, predicted_families, l
 
 def main():
     parser = argparse.ArgumentParser('Trains SVM model over protein vectors')
-    parser.add_argument('--sample', type=str, default='./trained_models/protein_pfam_vector.csv')
+    parser.add_argument('--sample', type=str, default='../trained_models/protein_pfam_vector.csv')
     args = parser.parse_args()
 
     sess = tf.Session()
@@ -143,13 +143,13 @@ def main():
     for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
         
         train_set, test_set = x_vals[train_index], x_vals[test_index]
-        encoded_train_label, encoded_test_label = y_vals[train_index].toarray(), y_vals[test_index].toarray()
+        sparse_encoded_train_label, sparse_encoded_test_label = y_vals[train_index], y_vals[test_index]
         i = 0
         while (i + 1) * batch_size < len(train_set):
             index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
             rand_x = train_set[index]
-            rand_y = encoded_train_label[index].transpose()
-            
+            np_y = sparse_encoded_train_label[index].toarray()
+            rand_y = np_y.transpose()
             sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
             
             temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
@@ -164,8 +164,8 @@ def main():
         while (i + 1) * batch_size < len(test_set):
             index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
             rand_x = test_set[index]
-            rand_y = encoded_test_label[index].transpose()
-            
+            np_y = sparse_encoded_test_label[index].toarray()
+            rand_y = np_y.transpose()
             acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
             test_batch_accuracy.append(acc_temp)
             
