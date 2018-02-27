@@ -133,7 +133,7 @@ def main():
     # Tensorboard declaration
     loss_summary = tf.summary.scalar('loss', loss)
     accuracy_summary = tf.summary.scalar('accuracy', accuracy)
-    #merged_summary = tf.summary.merge_all()
+    merged_summary = tf.summary.merge_all()
 
     summary_writer = tf.summary.FileWriter('./logs', sess.graph)
 
@@ -150,7 +150,7 @@ def main():
         train_set, test_set = x_vals[train_index], x_vals[test_index]
         sparse_encoded_train_label, sparse_encoded_test_label = y_vals[train_index], y_vals[test_index]
         i = 0
-        print(len(test_set))
+
         while (i + 1) * batch_size < len(train_set):
             index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
             rand_x = train_set[index]
@@ -160,8 +160,8 @@ def main():
             
             temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
             loss_vec.append(temp_loss)
+
             i += 1
-            summary_writer.add_summary(temp_loss, i)
             
             if (i+1)%25==0:
                 print('train_Step #' + str(i+1))
@@ -173,14 +173,14 @@ def main():
             rand_x = test_set[index]
             np_y = sparse_encoded_test_label[index].toarray()
             rand_y = np_y.transpose()
-            acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
+            #acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
+            acc_temp, summary = sess.run([accuracy, merged_summary], feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
             test_batch_accuracy.append(acc_temp)
             
-            summary_writer.add_summary(acc_temp, i)
+            summary_writer.add_summary(summary, i)
             
             if (i+1)%25==0:
                 print('test_Step #' + str(i+1))
-                print(',Loss = ' + str(temp_loss))
                 print(',test_accuracy = ' + str(acc_temp)) 
                 print('\n')
                 
