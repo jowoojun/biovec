@@ -32,8 +32,8 @@ else :
     tsne = tp.BioTsne()
     
     # make disprot tsne
-    disprot_2D  = "./trained_models/disprot/disprot_2D" 
-    disprot_vec = "./trained_models/disprot/disprot_protein.csv" 
+    disprot_2D  = "./trained_models/FG-NUPS/_2D" 
+    disprot_vec = "./trained_models/FG-NUPS/FG-NUPS_protein.csv" 
     tsne.make_tsne(disprot_2D , disprot_vec) 
     
     # make pdb tsne
@@ -43,4 +43,4 @@ else :
     
     #visualization disprot and pdb
 
-    tsne.visualization(disprot_2D , pdb_2D)
+#    tsne.visualization(disprot_2D , pdb_2D)
