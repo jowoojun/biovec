@@ -141,10 +141,10 @@ def main():
     
     #K fold cross validation
     for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
-        
         train_set, test_set = x_vals[train_index], x_vals[test_index]
         sparse_encoded_train_label, sparse_encoded_test_label = y_vals[train_index], y_vals[test_index]
         i = 0
+        print(len(test_set))
         while (i + 1) * batch_size < len(train_set):
             index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
             rand_x = train_set[index]
@@ -161,6 +161,7 @@ def main():
                 print('Loss = ' + str(temp_loss))
                 
         i = 0
+        print(len(test_set))
         while (i + 1) * batch_size < len(test_set):
             index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
             rand_x = test_set[index]
@@ -180,9 +181,10 @@ def main():
         print('Batch accuracy: ' + str(acc_temp))
         print('\n')
         print('\n')
-    
-    print('Total accuracy: ' + str(sum(test_batch_accuracy) / float(len(test_batch_accuracy))))
-    print('\n')
+    print(test_batch_accuracy)
+    print('Total accuracy: ' + str(float(sum(test_batch_accuracy)) / float(len(test_batch_accuracy))))
+    save_path = saver.save(sess, model_path)
+    print ("Model saved in path: %s" % save_path)
     print('\n')
 
 if __name__ == '__main__':
