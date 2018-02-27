@@ -138,21 +138,37 @@ def main():
     # Testing loop
     i = 0
     test_batch_accuracy = []
+    used_test_y = np.zeros(shape=(0))
+    predicted = np.zeros(shape=(0))
+
     while (i + 1) * batch_size < len(x_test):
         
         index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
         rand_x = x_test[index]
         np_y = y_test_sparse[index].toarray()
         rand_y = np_y.transepose()
-        
+        if depth != num_of_families:
+            redundancy = [[0 for col in range(batch_size)] for row in range(depth-num_of_families)]
+            rand_y = np.concatenate([rand_y, redundancy])
+
         acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
+        predicted_families = sess.run(prediction, feed_dict={x_data: rand_x,
+                                                             y_target: rand_y,
+                                                             prediction_grid:rand_x})
+
+        rand_y = tf.argmax(rand_y, 0)
+        rand_y = rand_y.eval(session=sess)
+
+        used_test_y = np.append(used_test_y, rand_y)
+        predicted = np.append(predicted, predicted_families)
+
         test_batch_accuracy.append(acc_temp)
         print('Batch accuracy: ' + str(acc_temp))
         print('\n')
         print('\n')
         i += 1
     print('total accuracy : ' + str(sum(test_batch_accuracy) / float(len(test_batch_accuracy))))
-    #save_model_metrics("rbf_model",  used_test_y, predicted, label_encoder)
+    save_model_metrics("rbf_model",  used_test_y, predicted, label_encoder)
 
 if __name__=='__main__':
     main()
