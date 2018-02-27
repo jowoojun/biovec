@@ -23,13 +23,11 @@ def get_data(sess, path):
     data_size = len(family)
     print("Done...\n")
 
-    #vectors_else, family_else = None, None
-
     print("Labeling...")
     label_encoder = preprocessing.LabelEncoder()
     label_encoder.fit(family)
     families_encoded = np.array(label_encoder.transform(family), dtype=np.int32)
-    #family = None
+    family = None
     depth = families_encoded.max() + 1
     print("Done...\n")
 
@@ -167,11 +165,6 @@ def main():
             index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
             rand_x = test_set[index]
             rand_y = encoded_test_label[index].transpose()
-            
-            sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
-            
-            temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
-            loss_vec.append(temp_loss)   
             
             acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
             test_batch_accuracy.append(acc_temp)
