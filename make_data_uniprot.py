@@ -150,22 +150,22 @@ print ("...Uniprot Done\n")
 
 #===============================================================================#
 # disprot
-print("Start disprot...\n")
+print("Start FG-NUPS...\n")
 
-directory = "trained_models/disprot"
+directory = "trained_models/FG-NUPS"
 if not os.path.exists(directory):
     os.makedirs(directory)
     print("directory(trained_models) created\n")
 
-disprot_fasta = "document/disprot.fasta.gz"
+disprot_fasta = "document/FG-NUPS.fasta.gz"
 dpv = word2vec.ProtVec(disprot_fasta,
-                     out="trained_models/disprot/disprot_ngram_corpus.txt")
+                     out="trained_models/FG-NUPS/FG-NUPS_ngram_corpus.txt")
 
-print ("Checking the file(trained_models/disprot_ngram.csv)")
+print ("Checking the file(trained_models/FG-NUPS_ngram.csv)")
 
-disprot_ngram = "trained_models/disprot/disprot_ngram.csv"
-disprot_protein = "trained_models/disprot/disprot_protein.csv"
-disprot_pfam_vector_fname = "trained_models/disprot/disprot_pfam_vector.csv"
+disprot_ngram = "trained_models/FG-NUPS/FG-NUPS_ngram.csv"
+disprot_protein = "trained_models/FG-NUPS/FG-NUPS_protein.csv"
+#disprot_pfam_vector_fname = "trained_models/FG-NUPS/dis_pfam_vector.csv"
 if not os.path.isfile(disprot_ngram) or not os.path.isfile(disprot_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     dpv.word2vec_init(disprot_ngram)
@@ -178,15 +178,15 @@ else:
 
 print ("...OK\n")
 
-print("Checking the file(trained_models/disprot_pfam_vector.csv)")
-if not os.path.isfile(disprot_pfam_vector_fname):
-    print ('INFORM : There is no pfam_model file. Generate pfam_model files from data file...')
+#print("Checking the file(trained_models/disprot_pfam_vector.csv)")
+#if not os.path.isfile(disprot_pfam_vector_fname):
+#   print ('INFORM : There is no pfam_model file. Generate pfam_model files from data file...')
     
     #Cut standard
-    min_proteins_in_family = 10
+#   min_proteins_in_family = 10
 
     #Make disprot_pfam_vector_fname.csv by protein_name, family_name, vectors
-    make_protein_pfam_vector_for_other(disprot_pfam_vector_fname, disprot_protein, disprot_fasta)
+#   make_protein_pfam_vector_for_other(disprot_pfam_vector_fname, disprot_protein, disprot_fasta)
 
 print ("...Disprot Done\n")
 
@@ -199,7 +199,7 @@ if not os.path.exists(directory):
     os.makedirs(directory)
     print("directory(trained_models) created\n")
 
-pdb_fasta= "document/pdb_seqres.fasta.gz"
+pdb_fasta= "document/pdb.fasta.gz"
 ppv = word2vec.ProtVec(fasta_file,out="trained_models/pdb/pdb_ngram_corpus.txt")
 
 pdb_ngram = "trained_models/pdb/pdb_ngram.csv"

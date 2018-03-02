@@ -16,4 +16,3 @@ with tf.Session() as sess:
 
     writer.add_summary(result[0])
 
-
