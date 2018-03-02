@@ -9,6 +9,7 @@ import numpy as np
 import os
 import sys
 import gzip
+import pandas as pd
 
 
 def make_protein_vector_for_uniprot(fasta_file, protein_vector_fname, ngram_vectors):
@@ -73,6 +74,10 @@ def make_protein_pfam_vector_for_uniprot(protein_pfam_vector_fname, protein_vect
                 family = protein_families[uniprot_name]
                 if protein_family_stat[family] >= min_proteins_in_family:
                     f.write('{}\t{}\t{}'.format(uniprot_name, protein_families[uniprot_name], vector_string) + "\n")
+                    dataframe = pd.read_csv("./trained_models/protein_pfam_vector.csv",header = None)
+                    dataset = dataframe.values
+                    family = dataset[:,1]
+                    vectors = dataset[:,2:].astype(float)
     f.close()
 
 
@@ -94,6 +99,7 @@ def make_protein_pfam_vector_for_other(protein_pfam_vector_fname, protein_vector
             if protein_name in protein_families:
                 family = protein_families[protein_name]
                 f.write('{}\t{}\t{}'.format(protein_name, protein_families[protein_name], vector_string) + "\n")
+                
     f.close()
 
 fasta_file = "document/uniprot_sprot.fasta.gz"
