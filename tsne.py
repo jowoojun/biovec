@@ -21,7 +21,7 @@ if "3gram"==str:
     #print labels
     property_list = pro.make_property_list(labels)
     tsne.make_tsne(model)
-    f = open("./trained_models/2D_vec/ngram_2D_vector","rb")
+    f = open("./trained_models/ngram_2D_vector","rb")
     vectors = pickle.load(f)
     final_embedding = tsne.link_with_vector(vectors, property_list)
     print "... OK\n"
@@ -33,21 +33,9 @@ else :
     tsne = tp.BioTsne()
     
     # make disprot tsne
-    FGNUPS_2D  = "./trained_models/FG-NUPS/FG-NUPS_2D" 
-    FGNUPS_vec = "./trained_models/FG-NUPS/FG-NUPS_protein.csv" 
-    if not os.path.isfile(FGNUPS_2D):
-        FGNUPS_vectors = tsne.csv_to_array(FGNUPS_vec)
-        tsne.make_tsne(FGNUPS_2D ,FGNUPS_vectors) 
-        
-    # make pdb tsne
-    pdb_2D  = "./trained_models/pdb/pdb_2D"
-    pdb_vec = "./trained_models/pdb/pdb_protein.csv"
-    if not os.path.isfile(pdb_2D):
-        pdb_vectors = tsne.csv_to_array(pdb_vec)
-        # random choose pdb_vecotors
-#pdb_vectors = np.random.choice(pdb_vectors,2200)        
-        tsne.make_tsne(pdb_2D , pdb_vectors) 
-        
-    #visualization disprot and pdb
-
-#    tsne.visualization(disprot_2D , pdb_2D)
+    dataset_2D  = "./trained_models/SVM_dataset/SVM_dataset_2D" 
+    dataset_vec = "./trained_models/SVM_dataset/SVM_dataset_protein.csv" 
+    if not os.path.isfile(dataset_2D):
+        dataset_vectors = tsne.csv_to_array(dataset_vec)
+        print len(dataset_vectors)
+        tsne.make_tsne(dataset_2D ,dataset_vectors) 

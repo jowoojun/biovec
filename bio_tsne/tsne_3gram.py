@@ -16,7 +16,7 @@ class BioTsne:
 
     # making tsne
     def make_tsne(self, model):
-        file_path="./trained_models/2D_vec/ngram_2D_vector"
+        file_path="./trained_models/ngram_2D_vector"
         if not os.path.isfile(file_path):
             # make tsne
             X = model[model.wv.vocab]
