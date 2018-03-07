@@ -48,21 +48,50 @@ def get_data(sess, path):
     return label_encoder, vectors_train_scaled, np_onehot, depth, data_size
 
 def save_model_metrics(model_params_string, families_test, predicted_families, label_encoder):
+    actual_family_and_num = dict()
+    predicted_family_and_num = dict()
     with open('{}_results.txt'.format(model_params_string), 'w') as outfile:
         outfile.write('accuracy_score: {}\n'.format(metrics.accuracy_score(families_test, predicted_families)))
-
+        confusion = metrics.confusion_matrix(families_test, predicted_families)
         prediction_counter = Counter()
+
         for index, predicted_family in enumerate(predicted_families):
             predicted_family = label_encoder.inverse_transform(predicted_family.astype('int64'))
             actual_family = label_encoder.inverse_transform(families_test[index].astype('int64'))
             prediction_counter[actual_family==predicted_family] += 1
-            outfile.write('actual_family={} predicted_family={} correct={}\n'.format(
-                                                                                     actual_family, 
-                                                                                     predicted_family, 
-                                                                                     actual_family==predicted_family))
+            if actual_family in actual_family_and_num:
+                actual_family_and_num[actual_family] += 1
+            else:
+                actual_family_and_num[actual_family] = 1
+
+            if predicted_family == actual_family:
+                if predicted_family in predicted_family_and_num:
+                    predicted_family_and_num[predicted_family] += 1
+                else:
+                    predicted_family_and_num[predicted_family] = 1
+
+        for index, actual_family in enumerate(actual_family_and_num):
+            actual = actual_family_and_num[actual_family]
+            if not actual_family in predicted_family_and_num:
+                predicted_family_and_num[actual_family] = 0
+            predicted = predicted_family_and_num[actual_family]
+            
+            TP = confusion[index, index]
+            FP = np.sum(confusion[:,index]) - TP
+            FN = np.sum(confusion[index,:]) - TP
+            TN = np.sum(confusion) - FN - FP + TP
+
+            acc = float(predicted) / float(actual)
+            acc_temp = float(TP + TN)/ float(TP + FP + TN + FN)
+            sensitivity = float(TP) / float(TP + FP)
+            specificity = float(TN) / float(FN + TN)
+
+            outfile.write('{}\t{}\t{}\t{:.2f}\t{:.2f}\t{:.2f}\t{:.2f}\n'.format(actual_family, actual, predicted, acc, sensitivity, specificity, acc_temp))
+
         tp_rate = float(prediction_counter[True]) / sum(prediction_counter.values())
         outfile.write('counter = {} TP_rate = {}\n'.format(prediction_counter, tp_rate))
     
+
 
 def main():
     parser = argparse.ArgumentParser('Trains SVM model over protein vectors')
@@ -84,10 +113,12 @@ def main():
     prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
 
     # Create variables for svm
-    b = tf.Variable(tf.random_normal(shape=[depth, batch_size]))
+
+    save_depth = tf.get_variable(name="depth", initializer=tf.constant(depth))
+    b = tf.Variable(tf.random_normal(shape=[depth, batch_size]), name="b")
 
     # Gaussian (RBF) kernel
-    gamma = tf.constant(-5.0)
+    gamma = tf.constant(-10.0)
     dist = tf.reduce_sum(tf.square(x_data), 1)
     dist = tf.reshape(dist, [-1,1])
     sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
@@ -124,11 +155,15 @@ def main():
 
     # Initialize variables
     init = tf.global_variables_initializer()
+    init_op = tf.initialize_all_variables()
+
     sess.run(init)
+    sess.run(init_op)
 
     # model save declaration
     model_path = "../trained_models/svm.ckpt"
-    saver = tf.train.Saver()
+    saver = tf.train.Saver({"b":b, "depth":save_depth})
+
     
     # Tensorboard declaration
     loss_summary = tf.summary.scalar('loss', loss)
@@ -144,6 +179,9 @@ def main():
     #Initialize KFOLD Object
     seed = 7
     kfold = KFold(n_splits=10, shuffle=True, random_state=seed)
+    
+    used_test_y = np.zeros(shape=(0))
+    predicted = np.zeros(shape=(0))
     
     #K fold cross validation
     for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
@@ -174,15 +212,22 @@ def main():
             np_y = sparse_encoded_test_label[index].toarray()
             rand_y = np_y.transpose()
             #acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
-            acc_temp, summary = sess.run([accuracy, merged_summary], feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
+            acc_temp, summary, predicted_families = sess.run([accuracy, merged_summary, prediction], feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
             test_batch_accuracy.append(acc_temp)
             
             summary_writer.add_summary(summary, i)
             
+            rand_y = tf.argmax(rand_y, 0)
+            rand_y = rand_y.eval(session=sess)
+
+            used_test_y = np.append(used_test_y, rand_y)
+            predicted = np.append(predicted, predicted_families)
+            print used_test_y.shape
+            print predicted.shape
+            
             if (i+1)%25==0:
-                print('test_Step #' + str(i+1))
+                print('\ntest_Step #' + str(i+1))
                 print(',test_accuracy = ' + str(acc_temp)) 
-                print('\n')
                 
             i += 1
     
@@ -191,7 +236,10 @@ def main():
         print('\n')
     print(test_batch_accuracy)
     print('Total accuracy: ' + str(float(sum(test_batch_accuracy)) / float(len(test_batch_accuracy))))
-    save_path = saver.save(sess, model_path)
+
+    save_model_metrics("rbf_test_model",  used_test_y, predicted, label_encoder)
+    # save variable
+    #save_path = saver.save(sess, model_path)
     print ("Model saved in path: %s" % save_path)
     print('\n')
 
