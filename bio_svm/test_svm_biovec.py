@@ -76,6 +76,7 @@ def save_model_metrics(model_params_string, families_test, predicted_families, l
             FP = np.sum(confusion[index,:]) - TP
             FN = np.sum(confusion[:,index]) - TP
             TN = np.sum(confusion) - FN - FP - TP
+            print(confusion)
 
             acc = float(predicted) / float(actual)
             acc_temp = float(TP + TN)/ float(TP + FP + TN + FN)
@@ -94,12 +95,22 @@ def main():
     args = parser.parse_args()
 
     sess = tf.Session()
-
+    
     print ("Start getting data...")
     label_encoder, x_test, y_test_sparse, num_of_families = get_data(sess, args.sample)
     print ("Done...\n")
-    depth = 581
-    batch_size = 100
+    #depth = 2676
+    batch_size = 250
+    
+    # Create variables for svm
+    b = tf.get_variable("b", shape=(), initializer=tf.zeros_initializer())
+    depth = tf.get_variable("depth", shape=(), initializer=tf.zeros_initializer())
+    
+    # restore variable
+    save_path = "../trained_models/svm.ckpt"
+    saver = tf.train.Saver()
+    saver.restore(sess, save_path)
+    print ("Model restored from file: %s" %save_path)
 
     # Initialize placeholders
     x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32)
@@ -107,10 +118,8 @@ def main():
     prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
     
     # Initialize gamma
-    gamma = tf.constant(-5.0)
+    gamma = tf.constant(-50.0)
     
-    # Create variables for svm
-    b = tf.Variable(tf.random_normal(shape=[depth, batch_size]))
 
     # Gaussian (RBF) prediction kernel
     rA = tf.reshape(tf.reduce_sum(tf.square(x_data), 1),[-1,1])
@@ -124,32 +133,25 @@ def main():
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
 
     # Initialize variables
-    save_path = "../trained_models/svm.ckpt"
-    saver = tf.train.Saver()
     init = tf.global_variables_initializer()
-
 
     # test_model
     sess.run(init)
-    saver.restore(sess, save_path)
-    print ("Model restored from file: %s" %save_path)
 
-    
     # Testing loop
     i = 0
     test_batch_accuracy = []
     used_test_y = np.zeros(shape=(0))
     predicted = np.zeros(shape=(0))
 
-    while (i + 1) * batch_size < len(x_test):
-        
+    while (i+1)*batch_size < len(x_test):
         index = [i for i in range(batch_size * i, batch_size * (i + 1) )]
         rand_x = x_test[index]
         np_y = y_test_sparse[index].toarray()
-        rand_y = np_y.transepose()
-        if depth != num_of_families:
-            redundancy = [[0 for col in range(batch_size)] for row in range(depth-num_of_families)]
-            rand_y = np.concatenate([rand_y, redundancy])
+        rand_y = np_y.transpose()
+        #if depth != num_of_families:
+        #    redundancy = [[0 for col in range(batch_size)] for row in range(depth-num_of_families)]
+        #    rand_y = np.concatenate([rand_y, redundancy])
 
         acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y,prediction_grid:rand_x})
         predicted_families = sess.run(prediction, feed_dict={x_data: rand_x,
@@ -163,12 +165,12 @@ def main():
         predicted = np.append(predicted, predicted_families)
 
         test_batch_accuracy.append(acc_temp)
+        
         print('Batch accuracy: ' + str(acc_temp))
-        print('\n')
-        print('\n')
         i += 1
+
     print('total accuracy : ' + str(sum(test_batch_accuracy) / float(len(test_batch_accuracy))))
-    save_model_metrics("rbf_model",  used_test_y, predicted, label_encoder)
+    save_model_metrics("rbf_test_model",  used_test_y, predicted, label_encoder)
 
 if __name__=='__main__':
     main()
