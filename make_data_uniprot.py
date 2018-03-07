@@ -94,6 +94,7 @@ def make_protein_pfam_vector_for_other(protein_pfam_vector_fname, protein_vector
             if protein_name in protein_families:
                 family = protein_families[protein_name]
                 f.write('{}\t{}\t{}'.format(protein_name, protein_families[protein_name], vector_string) + "\n")
+                
     f.close()
 
 fasta_file = "document/uniprot_sprot.fasta.gz"
@@ -144,74 +145,33 @@ print ("...Uniprot Done\n")
 
 #===============================================================================#
 # disprot
-print("Start FG-NUPS...\n")
+print("Start SVM dataset...\n")
 
-directory = "trained_models/FG-NUPS"
+directory = "trained_models/SVM_dataset"
 if not os.path.exists(directory):
     os.makedirs(directory)
     print("directory(trained_models) created\n")
 
-disprot_fasta = "document/FG-NUPS.fasta.gz"
-dpv = word2vec.ProtVec(disprot_fasta,
-                     out="trained_models/FG-NUPS/FG-NUPS_ngram_corpus.txt")
+SVM_dataset_fasta = "document/dataset.fasta.gz"
+dpv = word2vec.ProtVec(SVM_dataset_fasta,
+                     out="trained_models/SVM_dataset/SVM_dataset_ngram_corpus.txt")
 
-print ("Checking the file(trained_models/FG-NUPS_ngram.csv)")
+print ("Checking the file(trained_models/SVM_dataset/SVM_dataset_ngram.csv)")
 
-disprot_ngram = "trained_models/FG-NUPS/FG-NUPS_ngram.csv"
-disprot_protein = "trained_models/FG-NUPS/FG-NUPS_protein.csv"
+SVM_ngram = "trained_models/SVM_dataset/SVM_dataset_ngram.csv"
+SVM_protein = "trained_models/SVM_dataset/SVM_dataset_protein.csv"
 #disprot_pfam_vector_fname = "trained_models/FG-NUPS/dis_pfam_vector.csv"
-if not os.path.isfile(disprot_ngram) or not os.path.isfile(disprot_protein):
+if not os.path.isfile(SVM_ngram) or not os.path.isfile(SVM_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
-    dpv.word2vec_init(disprot_ngram)
+    dpv.word2vec_init(SVM_ngram)
 
-    ngram_vectors = dpv.get_ngram_vectors(disprot_ngram)
-    make_protein_vector_for_other(disprot_fasta, disprot_protein,ngram_vectors)
+    ngram_vectors = dpv.get_ngram_vectors(SVM_ngram)
+    make_protein_vector_for_other(SVM_dataset_fasta, SVM_protein,ngram_vectors)
 
 else:
     print ("INFORM : File's Existence is confirmed\n")
 
 print ("...OK\n")
-
-#print("Checking the file(trained_models/disprot_pfam_vector.csv)")
-#if not os.path.isfile(disprot_pfam_vector_fname):
-#   print ('INFORM : There is no pfam_model file. Generate pfam_model files from data file...')
-    
-    #Cut standard
-#   min_proteins_in_family = 10
-
-    #Make disprot_pfam_vector_fname.csv by protein_name, family_name, vectors
-#   make_protein_pfam_vector_for_other(disprot_pfam_vector_fname, disprot_protein, disprot_fasta)
-
-print ("...Disprot Done\n")
-
-#===============================================================================#
-# pdb
-print ("Start pdb...\n")
-
-directory = "trained_models/pdb"
-if not os.path.exists(directory):
-    os.makedirs(directory)
-    print("directory(trained_models) created\n")
-
-pdb_fasta= "document/pdb.fasta.gz"
-ppv = word2vec.ProtVec(fasta_file,out="trained_models/pdb/pdb_ngram_corpus.txt")
-
-pdb_ngram = "trained_models/pdb/pdb_ngram.csv"
-pdb_protein = "trained_models/pdb/pdb_protein.csv"
-pdb_pfam_vector_fname = "trained_models/pdb/pdb_pfam_vector.csv"
-if not os.path.isfile(pdb_ngram) or not os.path.isfile(pdb_protein):
-    print ('INFORM : There is no vector model file. Generate model files from data file...')
-    ppv.word2vec_init(pdb_ngram)
-    #pv.save(model_ngram)
-
-    ngram_vectors = ppv.get_ngram_vectors(pdb_ngram)
-    make_protein_vector_for_other(pdb_fasta, pdb_protein , ngram_vectors)
-
-else:
-    print ("INFORM : File's Existence is confirmed\n")
-
-print ("...OK\n")
-
-print ("...Pdb Done\n")
+print ("...SVM dataset Done\n")
 
 #===============================================================================#
