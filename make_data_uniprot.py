@@ -144,6 +144,7 @@ if not os.path.isfile(protein_pfam_vector_fname):
 print ("...Uniprot Done\n")
 
 #===============================================================================#
+# binary svm
 # disprot
 print("Start SVM dataset...\n")
 
@@ -175,3 +176,144 @@ print ("...OK\n")
 print ("...SVM dataset Done\n")
 
 #===============================================================================#
+# density map
+# make directory
+directory = "trained_models/density_map"
+if not os.path.exists(directory):
+    os.makedirs(directory)
+    print("directory(trained_models) created\n")
+
+
+# traing data path
+dis_disprot = "./processed_data/density_map/dis-disprot.fasta.gz"
+disprot     = "./processed_data/density_map/disprot.fasta.gz"
+dis_fg_nups = "./processed_data/density_map/dis-fg-nups.fasta.gz"
+fg_nups     = "./processed_data/density_map/fg-nups.fasta.gz"
+pdb1        = "./processed_data/density_map/pdb1.fasta.gz"
+pdb2        = "./processed_data/density_map/pdb2.fasta.gz"
+
+# dis_disprot train
+pv = word2vec.ProtVec(dis_disprot,
+                     out="trained_models/density_map/dis-disprot-ngram_corpus.txt")
+print ("Checking the file dis-disprot")
+
+dis_disprot_ngram   = "trained_models/density_map/dis-disprot-ngram.csv"
+dis_disprot_protein = "trained_models/density_map/dis-disprot-protein.csv"
+if not os.path.isfile(dis_disprot_ngram) or not os.path.isfile(dis_disprot_protein):
+    print ('INFORM : There is no vector model file. Generate model files from data file...')
+    pv.word2vec_init(dis_disprot_ngram)
+
+    ngram_vectors = pv.get_ngram_vectors(dis_disprot_ngram)
+    make_protein_vector_for_other(dis_disprot, dis_disprot_protein,ngram_vectors)
+
+else:
+    print ("INFORM : File's Existence is confirmed\n")
+
+print ("...OK\n")
+print ("...dis-disprot Done\n")
+
+
+# disprot train
+pv = word2vec.ProtVec(disprot,
+                     out="trained_models/density_map/disprot-ngram_corpus.txt")
+print ("Checking the file disprot")
+
+disprot_ngram   = "trained_models/density_map/dis-disprot-ngram.csv"
+disprot_protein = "trained_models/density_map/dis-disprot-protein.csv"
+if not os.path.isfile(disprot_ngram) or not os.path.isfile(disprot_protein):
+    print ('INFORM : There is no vector model file. Generate model files from data file...')
+    pv.word2vec_init(disprot_ngram)
+
+    ngram_vectors = pv.get_ngram_vectors(disprot_ngram)
+    make_protein_vector_for_other(disprot, disprot_protein,ngram_vectors)
+
+else:
+    print ("INFORM : File's Existence is confirmed\n")
+
+print ("...OK\n")
+print ("...disprot Done\n")
+
+
+# dis-fg-nups train
+pv = word2vec.ProtVec(dis_fg_nups,
+                     out="trained_models/density_map/dis-fg-nups-ngram_corpus.txt")
+print ("Checking the file dis-fg-nups")
+
+dis_fg_nups_ngram   = "trained_models/density_map/dis-fg-nups-ngram.csv"
+dis_fg_nups_protein = "trained_models/density_map/dis-fg-nups-protein.csv"
+if not os.path.isfile(dis_fg_nups_ngram) or not os.path.isfile(dis_fg_nups_protein):
+    print ('INFORM : There is no vector model file. Generate model files from data file...')
+    pv.word2vec_init(dis_fg_nups_ngram)
+
+    ngram_vectors = pv.get_ngram_vectors(dis_fg_nups_ngram)
+    make_protein_vector_for_other(dis_fg_nups, dis_fg_nups_protein,ngram_vectors)
+
+else:
+    print ("INFORM : File's Existence is confirmed\n")
+
+print ("...OK\n")
+print ("...dis_fg_nups Done\n")
+
+
+# fg-nups train
+pv = word2vec.ProtVec(fg_nups,
+                     out="trained_models/density_map/fg-nups-ngram_corpus.txt")
+print ("Checking the file fg-nups")
+
+fg_nups_ngram   = "trained_models/density_map/fg-nups-ngram.csv"
+fg_nups_protein = "trained_models/density_map/fg-nups-protein.csv"
+if not os.path.isfile(fg_nups_ngram) or not os.path.isfile(fg_nups_protein):
+    print ('INFORM : There is no vector model file. Generate model files from data file...')
+    pv.word2vec_init(fg_nups_ngram)
+
+    ngram_vectors = pv.get_ngram_vectors(fg_nups_ngram)
+    make_protein_vector_for_other(fg_nups, fg_nups_protein,ngram_vectors)
+
+else:
+    print ("INFORM : File's Existence is confirmed\n")
+
+print ("...OK\n")
+print ("...fg_nups Done\n")
+
+
+# pdb1 train
+pv = word2vec.ProtVec(pdb1,
+                     out="trained_models/density_map/pdb1-ngram_corpus.txt")
+print ("Checking the file pdb1")
+
+pdb1_ngram   = "trained_models/density_map/pdb1-ngram.csv"
+pdb1_protein = "trained_models/density_map/pdb1-protein.csv"
+if not os.path.isfile(pdb1_ngram) or not os.path.isfile(pdb1_protein):
+    print ('INFORM : There is no vector model file. Generate model files from data file...')
+    pv.word2vec_init(pdb1_ngram)
+
+    ngram_vectors = pv.get_ngram_vectors(pdb1_ngram)
+    make_protein_vector_for_other(pdb1, pdb1_protein,ngram_vectors)
+
+else:
+    print ("INFORM : File's Existence is confirmed\n")
+
+print ("...OK\n")
+print ("...pdb1 Done\n")
+
+
+# pdb2 train
+pv = word2vec.ProtVec(pdb2,
+                     out="trained_models/density_map/pdb2-ngram_corpus.txt")
+print ("Checking the file pdb2")
+
+pdb2_ngram   = "trained_models/density_map/pdb2-ngram.csv"
+pdb2_protein = "trained_models/density_map/pdb2-protein.csv"
+if not os.path.isfile(pdb2_ngram) or not os.path.isfile(pdb2_protein):
+    print ('INFORM : There is no vector model file. Generate model files from data file...')
+    pv.word2vec_init(pdb2_ngram)
+
+    ngram_vectors = pv.get_ngram_vectors(pdb2_ngram)
+    make_protein_vector_for_other(pdb2, pdb2_protein,ngram_vectors)
+
+else:
+    print ("INFORM : File's Existence is confirmed\n")
+
+print ("...OK\n")
+print ("...pdb2 Done\n")
+
