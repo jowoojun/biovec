@@ -3,12 +3,18 @@ import simplejson as json
 from Bio import SeqIO
 import os
 # load FG-NUPS db
+
+directory="binary_svm"
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
 with open('./FG-NUPS.json', 'r') as f:
     FG_NUPS_data = json.load(f)
 f.close()
 
-if not os.path.exists("./dataset.fasta"):
-    dataset = open("dataset.fasta" , "w" )
+if not os.path.exists("./binary_svm/dataset.fasta"):
+    dataset = open("./binary_svm/dataset.fasta" , "w" )
+    
     # parsing FG-NUPS json data
     for FG_NUPS in FG_NUPS_data:
         sequence = FG_NUPS["sequence"]
@@ -31,10 +37,15 @@ if not os.path.exists("./dataset.fasta"):
         i+=1
     f.close()
     dataset.close()
-        
 
-if not os.path.exists("./dis-fg-nups.fasta"):
-    with open("dis-fg-nups.fasta", "w") as dis_fg_nups:
+    
+# density map 
+directory="density_map"
+if not os.path.exists(directory):
+    os.makedirs(directory)
+
+if not os.path.exists("./density_mapdis-fg-nups.fasta"):
+    with open("./density_map/dis-fg-nups.fasta", "w") as dis_fg_nups:
 
         with open("uniprot_sprot.fasta" , "r") as uniprot:
             uni_list = []
@@ -54,8 +65,8 @@ if not os.path.exists("./dis-fg-nups.fasta"):
     dis_fg_nups.close()
         
     
-if not os.path.exists("./fg-nups.fasta"):    
-    with open("fg-nups.fasta","w") as fg_nups:
+if not os.path.exists("./density_map/fg-nups.fasta"):    
+    with open("./density_map/fg-nups.fasta","w") as fg_nups:
         # parsing FG-NUPS json data
         for FG_NUPS in FG_NUPS_data:
             sequence = FG_NUPS["sequence"]
@@ -66,7 +77,7 @@ if not os.path.exists("./fg-nups.fasta"):
 
     fg_nups.close()
 
-if not os.path.exists("./pdb1.fasta") and not os.path.exists("./pdb2.fasta"):   
+if not os.path.exists("./density_map/pdb1.fasta") and not os.path.exists("./density_map/pdb2.fasta"):   
     with open("pdb_seqres.fasta" , "r") as pdb:
         i = 0
         pdb_seq = []
@@ -79,40 +90,52 @@ if not os.path.exists("./pdb1.fasta") and not os.path.exists("./pdb2.fasta"):
         
         print (len(pdb_seq))
         
-        index1 = np.random.choice(534 , 267)
-        print index1
-        index2 = list(set(range(0,534)) - set(index1))
-        print index2
-
-        p1 = pdb_seq[index1]
-        p2 = pdb_seq[index2]
-
+    p1 = np.random.choice(pdb_seq , 267 , replace=False)
+    p2 = np.random.choice(pdb_seq , 267 , replace=False)
+    
     pdb.close()
 
-    with open("pdb1.fasta" , "w") as pdb1:
+    with open("./density_map/pdb1.fasta" , "w") as pdb1:
         for seq in p1:
             name = "pdb1"
             data = ">%s\n%s"%(name , seq)
             pdb1.write(data)
     pdb1.close()
 
-    with open("pdb2.fasta" , "w") as pdb2:
+    with open("./density_map/pdb2.fasta" , "w") as pdb2:
         for seq in p2:
             name = "pdb2"
             data = ">%s\n%s"%(name , seq)
             pdb2.write(data)
     pdb2.close()
 
-# name = 'pdb'
-#                   data = ">%s\n%s"%(name , seq)
-#                   dataset.write(data)
+if not os.path.exists("./density_map/dis-disprot.fasta"):
 
+    with open("uniprot_sprot.fasta" , "r") as uniprot:
+        uni_list = []
+        for r in SeqIO.parse(uniprot, "fasta"):
+            uni_list.append(r.seq)
+        uni_list = np.array(uni_list)
+        uni_list = np.random.choice(uni_list , 803, replace=False)
+    uniprot.close()
 
-#pdb1 = open()
-#pdb2 = open()
+    with open("./density_map/dis-disprot.fasta" , "w") as dis_disprot:
+        for seq in uni_list:
+           name = "dis-disprot"
+           data = '>%s\n%s\n'%(name,seq)
+           dis_disprot.write(data) 
+    dis_disprot.close()
 
+if not os.path.exists("./density_map/disprot.fasta"):
+    with open("disprot.json", "r") as f:
+        disprot_data = json.load(f)
+    f.close()
 
-
-
-#dis_disprot = open()
-#disprot =open()
+    with open("./density_map/disprot.fasta" , "w") as disprot:
+        # parsing FG-NUPS json data
+        for DP in disprot_data:
+            sequence = DP["sequence"]
+            name = "disprot"
+            data = '>%s\n%s\n'%(name,sequence)
+            disprot.write(data) 
+    disprot.close()
