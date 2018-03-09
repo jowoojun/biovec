@@ -51,26 +51,3 @@ class BioTsne:
         pickle.dump(X_tsne , f)
         f.close()
         print "... OK\n"
-
-    def visualization( self, disprot_path , pdb_path ):
-        # load X_tsne data
-        
-        f = open( disprot_path , "rb")
-        disprot = pickle.load(f)
-        f.close()
-
-        f = open( pdb_path , "rb")
-        pdb = pickle.load(f)
-        f.close()
-
-        fig , ax = plt.subplots()
-
-        d = ax.scatter(disprot[:,0], disprot[:, 1],c='r')
-        p = ax.scatter(pdb[:,0], pdb[:, 1] , c='b')
-        
-        l = ax.legend([d, p], ['disprot', 'pdb'], scatterpoints=1,
-               numpoints=1, handler_map={tuple: HandlerTuple(ndivide=None)})
-        plt.show()
-
-        return 0
-

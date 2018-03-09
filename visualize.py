@@ -5,10 +5,10 @@ import ngrams_properties.ngrams_properties as pro
 import pickle
 import os
 import numpy as np
-print "3gram or protein"
+print "PS , BSVM , CD"
 str = raw_input()
 
-if "3gram"==str:
+if "PS"==str:
     
     print "Loading 3gram vector"
     model_3gram = "./trained_models/ngram_model"
@@ -29,7 +29,7 @@ if "3gram"==str:
     print "Visualization"
     tsne.visualization(final_embedding)
 
-else :
+elif "BSVM"==str:
     tsne = tp.BioTsne()
     
     # make disprot tsne
@@ -39,3 +39,7 @@ else :
         dataset_vectors = tsne.csv_to_array(dataset_vec)
         print len(dataset_vectors)
         tsne.make_tsne(dataset_2D ,dataset_vectors) 
+elif "CD"==str:
+    tsne = tp.BioTsne()
+
+    # make `
