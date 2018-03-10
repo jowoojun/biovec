@@ -5,8 +5,16 @@ import ngrams_properties.ngrams_properties as pro
 import pickle
 import os
 import numpy as np
-print "PS , BSVM , CD"
+print "PS(protrin space) , BSVM(binay svm) , DM(density map)"
 str = raw_input()
+
+# make protein 100D-vec to 2D-vec
+def protein_tsne(dataset_2D , dataset_vec):
+    tsne = tp.BioTsne()
+    if not os.path.isfile(dataset_2D):
+        dataset_vectors = tsne.csv_to_array(dataset_vec)
+        print len(dataset_vectors)
+        tsne.make_tsne(dataset_2D ,dataset_vectors) 
 
 if "PS"==str:
     
@@ -39,7 +47,38 @@ elif "BSVM"==str:
         dataset_vectors = tsne.csv_to_array(dataset_vec)
         print len(dataset_vectors)
         tsne.make_tsne(dataset_2D ,dataset_vectors) 
-elif "CD"==str:
-    tsne = tp.BioTsne()
 
-    # make `
+elif "DM"==str:
+
+    # Dis-FGNUP
+    dis_fg_nups_2D  = "./trained_models/density_map/dis-fg-nups/dis-fg-nups-2D" 
+    dis_fg_nups_vec = "./trained_models/density_map/dis-fg-nups/dis-fg-nups-protein.csv" 
+    protein_tsne(dis_fg_nups_2D , dis_fg_nups_vec)
+
+    # FGNUPS
+    fg_nups_2D  = "./trained_models/density_map/fg-nups/fg-nups-2D" 
+    fg_nups_vec = "./trained_models/density_map/fg-nups/fg-nups-protein.csv" 
+    protein_tsne(fg_nups_2D , fg_nups_vec)
+
+
+    # PDB random1
+    pdb1_2D  = "./trained_models/density_map/pdb1/pdb1-2D" 
+    pdb1_vec = "./trained_models/density_map/pdb1/pdb1-protein.csv" 
+    protein_tsne(pdb1_2D , pdb1_vec)
+
+    # PDB random2
+    pdb2_2D  = "./trained_models/density_map/pdb2/pdb2-2D" 
+    pdb2_vec = "./trained_models/density_map/pdb2/pdb2-protein.csv" 
+    protein_tsne(pdb2_2D , pdb2_vec)
+
+    # Dis-Disprot
+    dis_disprot_2D  = "./trained_models/density_map/dis-disprot/dis-disprot-2D" 
+    dis_disprot_vec = "./trained_models/density_map/dis-disprot/dis-disprot-protein.csv" 
+    protein_tsne(dis_disprot_2D , dis_disprot_vec)
+
+    # Disprot
+    disprot_2D  = "./trained_models/density_map/disprot/disprot-2D" 
+    disprot_vec = "./trained_models/density_map/disprot/disprot-protein.csv" 
+    protein_tsne(disprot_2D , disprot_vec)
+
+
