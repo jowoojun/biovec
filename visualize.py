@@ -5,6 +5,7 @@ import ngrams_properties.ngrams_properties as pro
 import pickle
 import os
 import numpy as np
+import biovisual.bio_visual as bv
 print "PS(protrin space) , BSVM(binay svm) , DM(density map)"
 str = raw_input()
 
@@ -81,4 +82,5 @@ elif "DM"==str:
     disprot_vec = "./trained_models/density_map/disprot/disprot-protein.csv" 
     protein_tsne(disprot_2D , disprot_vec)
 
-
+    visual = bv.BioVisual()
+    visual.visual_vec(dis_disprot_2D , disprot_2D ,dis_fg_nups_2D , fg_nups_2D , pdb1_2D , pdb2_2D)
