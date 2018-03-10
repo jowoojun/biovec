@@ -1,6 +1,5 @@
 import bio_tsne.tsne_3gram as t3
 import bio_tsne.tsne_protein as tp
-import biovec
 import ngrams_properties.ngrams_properties as pro
 import pickle
 import os

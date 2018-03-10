@@ -89,9 +89,12 @@ if not os.path.exists("./density_map/pdb1.fasta") and not os.path.exists("./dens
             i+=1
         
         print (len(pdb_seq))
-        
-    p1 = np.random.choice(pdb_seq , 267 , replace=False)
-    p2 = np.random.choice(pdb_seq , 267 , replace=False)
+    
+    pdb_index = range(0,534)
+    p1_index = np.random.choice(pdb_index , 267 , replace=False)
+    p2_index = np.delete(pdb_index , p1_index)
+    p1 = np.take(pdb_seq , p1_index)
+    p2 = np.take(pdb_seq , p2_index)
     
     pdb.close()
 
