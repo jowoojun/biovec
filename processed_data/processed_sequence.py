@@ -8,7 +8,7 @@ directory="binary_svm"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
-with open('./FG-NUPS.json', 'r') as f:
+with open('./dis-disprot.json', 'r') as f:
     FG_NUPS_data = json.load(f)
 f.close()
 
@@ -44,36 +44,39 @@ directory="density_map"
 if not os.path.exists(directory):
     os.makedirs(directory)
 
-if not os.path.exists("./density_mapdis-fg-nups.fasta"):
+if not os.path.exists("./density_map/dis-fg-nups.fasta"):
     with open("./density_map/dis-fg-nups.fasta", "w") as dis_fg_nups:
 
-        with open("uniprot_sprot.fasta" , "r") as uniprot:
-            uni_list = []
-            for r in SeqIO.parse(uniprot, "fasta"):
-                if 80 <= len(r) and len(r) <= 94:
-                     uni_list.append(r.seq)
+        with open("dis-fg-nups.fasta" , "r") as f:
+            data_list = []
+            for r in SeqIO.parse(f, "fasta"):
+                 data_list.append(r.seq)
             
-            uni_list = np.array(uni_list)
-            uni_list = np.random.choice(uni_list , 129 , replace=False)
-            for seq in uni_list:
+            data_list = np.array(data_list)
+            # uni_list = np.random.choice(uni_list , 100 , replace=False)
+            for seq in data_list:
                name = "dis-fg-nups"
                data = '>%s\n%s\n'%(name,seq)
                dis_fg_nups.write(data) 
 
-        uniprot.close()
+        f.close()
 
     dis_fg_nups.close()
         
     
 if not os.path.exists("./density_map/fg-nups.fasta"):    
     with open("./density_map/fg-nups.fasta","w") as fg_nups:
-        # parsing FG-NUPS json data
-        for FG_NUPS in FG_NUPS_data:
-            sequence = FG_NUPS["sequence"]
-            if 80 <= len(sequence) and len(sequence) <= 94:
-                name = "FG_NUPS"
-                data = '>%s\n%s\n'%(name,sequence)
+        with open ("fg-nups.fasta","r") as f:
+            data_list = []
+            for r in SeqIO.parse(f , "fasta"):
+                data_list.append(r.seq)
+
+            data_list = np.array(data_list)
+            for seq in data_list:
+                name = "fg-nups"
+                data = ">%s\n%s\n" %(name,seq)
                 fg_nups.write(data)
+        f.close()
 
     fg_nups.close()
 
@@ -114,19 +117,17 @@ if not os.path.exists("./density_map/pdb1.fasta") and not os.path.exists("./dens
 
 if not os.path.exists("./density_map/dis-disprot.fasta"):
 
-    with open("uniprot_sprot.fasta" , "r") as uniprot:
-        uni_list = []
-        for r in SeqIO.parse(uniprot, "fasta"):
-            uni_list.append(r.seq)
-        uni_list = np.array(uni_list)
-        uni_list = np.random.choice(uni_list , 803, replace=False)
-    uniprot.close()
+    with open("dis-disprot.json", "r") as f:
+        dis_disprot_data = json.load(f)
+    f.close()
 
     with open("./density_map/dis-disprot.fasta" , "w") as dis_disprot:
-        for seq in uni_list:
-           name = "dis-disprot"
-           data = '>%s\n%s\n'%(name,seq)
-           dis_disprot.write(data) 
+        # parsing FG-NUPS json data
+        for DP in dis_disprot_data:
+            sequence = DP["sequence"]
+            name = "dis-disprot"
+            data = '>%s\n%s\n'%(name,sequence)
+            dis_disprot.write(data) 
     dis_disprot.close()
 
 if not os.path.exists("./density_map/disprot.fasta"):
