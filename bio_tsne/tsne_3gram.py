@@ -29,6 +29,20 @@ class BioTsne:
 
             f.close()
 
+    def density_tsne(self , file_path , model):
+        if not os.path.isfile(file_path):
+            print model
+            # make tsne
+            X = model[model.wv.vocab]
+            tsne = TSNE(n_components=2)
+            X_tsne = tsne.fit_transform(X)
+            
+            # save X_tsne
+            f = open(file_path,"wb")
+            pickle.dump(X_tsne , f)
+            
+            f.close()
+
     def link_with_vector(self, vectors, property_list):
         print np.append(vectors , property_list,axis=1)
         return np.append(vectors , property_list,axis=1)

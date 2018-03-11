@@ -11,8 +11,8 @@ with open("./trained_models/SVM_dataset/SVM_dataset_2D", "rb") as f:
     SVM_dataset = pickle.load(f)
 f.close()
 
-PDB = SVM_dataset[0:2200]
-FG_NUPS = SVM_dataset[2200:]
+FG_NUPS = SVM_dataset[0:700]
+PDB = SVM_dataset[700:]
 
 
 PDB = np.column_stack((PDB , len(PDB)*[0]))
@@ -58,9 +58,10 @@ plt.contourf(X1, X2, classifier.predict(np.array([X1.ravel(), X2.ravel()]).T).re
              alpha = 0.75, cmap = ListedColormap(('red', 'green')))
 plt.xlim(X1.min(), X1.max())
 plt.ylim(X2.min(), X2.max())
+maker_size=1
 for i, j in enumerate(np.unique(y_set)):
     plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
-                c = ListedColormap(('red', 'green'))(i), label = j)
+                maker_size,c = ListedColormap(('red', 'green'))(i), label = j)
 plt.title('SVM (Training set)')
 plt.xlabel('Age')
 plt.ylabel('Estimated Salary')

@@ -20,3 +20,8 @@ pdb.fasta
 /bio_svm/rbf_test_model_results.txt
 FG-NUPS.json
 dataset.fasta
+/bianry_svm/
+density_map
+uniprot_sprot.fasta
+dis-disprot.json
+dis-fg-nups.fasta

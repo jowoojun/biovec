@@ -16,7 +16,11 @@ parser = argparse.ArgumentParser('Trains SVM model over protein vectors')
 parser.add_argument('--sample', type=str, default='../trained_models/protein_pfam_vector.csv')
 args = parser.parse_args()
 
+<<<<<<< HEAD
 
+=======
+sess = tf.Session()
+>>>>>>> a8ed397020d65cd73edf401ff24ce99baf7a95dc
 
 print ("Start getting data...")
 #label_encoder, x_vals, y_vals, depth, data_size =g et_data(sess, args.sample)
@@ -64,6 +68,7 @@ x_vals = (vectors - min_on_training) / range_on_training
 
 print ("Done...\n")
 
+<<<<<<< HEAD
 batch_size = 100
 learning_rate = 0.01
 
@@ -124,11 +129,57 @@ with tf.Graph().as_default() as graph:
     prediction_onehot = tf.transpose(tf.one_hot(prediction, depth))
     
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
+=======
+batch_size = 250
+learning_rate = 0.01
+
+# Initialize placeholders
+x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32)
+y_target = tf.placeholder(shape=[depth, None], dtype=tf.float32)
+prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
+
+# Create variables for svm
+b = tf.Variable(tf.random_normal(shape=[depth, batch_size]), name="b")
+
+# Gaussian (RBF) kernel
+gamma = tf.constant(-100.0)
+dist = tf.reduce_sum(tf.square(x_data), 1)
+dist = tf.reshape(dist, [-1,1])
+sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
+my_kernel = tf.exp(tf.multiply(gamma, tf.abs(sq_dists)))
+
+# Declare function to do reshape/batch multiplication
+def reshape_matmul(mat):
+    v1 = tf.expand_dims(mat, 1)
+    v2 = tf.reshape(v1, [depth, batch_size, 1])
+    return(tf.matmul(v2, v1))
+
+# Compute SVM Model
+first_term = tf.reduce_sum(b)
+b_vec_cross = tf.matmul(tf.transpose(b), b)
+y_target_cross = reshape_matmul(y_target)
+
+second_term = tf.reduce_sum(tf.multiply(my_kernel, tf.multiply(b_vec_cross, y_target_cross)),[1,2])
+loss = tf.reduce_sum(tf.negative(tf.subtract(first_term, second_term)))
+
+# Gaussian (RBF) prediction kernel
+rA = tf.reshape(tf.reduce_sum(tf.square(x_data), 1),[-1,1])
+rB = tf.reshape(tf.reduce_sum(tf.square(prediction_grid), 1),[-1,1])
+pred_sq_dist = tf.add(tf.subtract(rA, tf.multiply(2., tf.matmul(x_data, tf.transpose(prediction_grid)))), tf.transpose(rB))
+pred_kernel = tf.exp(tf.multiply(gamma, tf.abs(pred_sq_dist)))
+
+prediction_output = tf.matmul(tf.multiply(y_target,b), pred_kernel)
+prediction = tf.arg_max(prediction_output-tf.expand_dims(tf.reduce_mean(prediction_output,1), 1), 0)
+prediction_onehot = tf.transpose(tf.one_hot(prediction, depth))
+
+accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
+>>>>>>> a8ed397020d65cd73edf401ff24ce99baf7a95dc
 
 # Calculate confusion_matrix
 #confusion_matrix = tf.confusion_matrix(y_target, prediction_onehot)
 
 # Count true positives, true negatives, false positives and false negatives.
+<<<<<<< HEAD
 # =============================================================================
 # tp = tf.count_nonzero(prediction_onehot * y_target)
 # tn = tf.count_nonzero((prediction_onehot - 1) * (y_target - 1))
@@ -161,6 +212,30 @@ sess = tf.Session(graph=graph)
 sess.run(init)
 sess.run(init_op)
 sess.run(running_vars_initializer)
+=======
+tp = tf.count_nonzero(prediction_onehot * y_target)
+tn = tf.count_nonzero((prediction_onehot - 1) * (y_target - 1))
+fp = tf.count_nonzero(prediction_onehot * (y_target - 1))
+fn = tf.count_nonzero((prediction_onehot - 1) * y_target)
+
+# Calculate accuracy, precision, recall and F1 score.
+accuracy_with_confusion = tf.divide((tp + tn) , (tp + fp + fn + tn))
+precision = tf.divide(tp , (tp + fp))
+recall = tf.divide(tp , (tp + fn))
+fmeasure = tf.divide((2 * precision * recall) , (precision + recall))
+
+# Declare optimizer
+my_opt = tf.train.GradientDescentOptimizer(learning_rate)
+train_step = my_opt.minimize(loss)
+
+# Initialize variables
+init = tf.global_variables_initializer()
+init_op = tf.initialize_all_variables()
+
+sess.run(init)
+sess.run(init_op)
+
+>>>>>>> a8ed397020d65cd73edf401ff24ce99baf7a95dc
 
 # loss and accuracy array declaration
 loss_vec = []
@@ -201,6 +276,7 @@ for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
         np_y = sparse_encoded_test_label[index].toarray()
         rand_y = np_y.transpose()
         acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+<<<<<<< HEAD
         
         prediction_one_dim = sess.run(prediction, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
         actuals = sess.run(actual, feed_dict={y_target: rand_y})
@@ -211,10 +287,17 @@ for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
         #something1 = sess.run(something, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
         #b_val = sess.run(b, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
         #kernel_val = sess.run(pred_kernel, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+=======
+
+        accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+        
+        
+>>>>>>> a8ed397020d65cd73edf401ff24ce99baf7a95dc
         test_batch_accuracy.append(acc_temp)
         
         if (i+1)%25==0:
             print('\ntest_Step #' + str(i+1))
+<<<<<<< HEAD
             print('test_accuracy = ' + str(acc_temp))
             print('confusion_accuracy = ' + str(accuracy_with_confusion_val))
             
@@ -273,4 +356,57 @@ print('Total accuracy: ' + str(accuracy_with_confusion_val))
 #     tp_rate = float(prediction_counter[True]) / sum(prediction_counter.values())
 #     outfile.write('counter = {} TP_rate = {}\n'.format(prediction_counter, tp_rate))
 # =============================================================================
+=======
+            print(',test_accuracy = ' + str(acc_temp))
+            print('\nconfusion_accuracy = ' + str(accuracy_with_confusion_val))
+            
+        i += 1
+>>>>>>> a8ed397020d65cd73edf401ff24ce99baf7a95dc
 
+    print('Batch accuracy: ' + str(acc_temp))
+    print('\n')
+    print('\n')
+print(test_batch_accuracy)
+print('Total accuracy: ' + str(float(sum(test_batch_accuracy)) / float(len(test_batch_accuracy))))
+
+# Test with famous families 
+for famous_family_num in famous_list:
+    print('=======family_name = {}======'.format(label_encoder.inverse_transform(famous_family_num)))
+    indices = []
+    counter = 0
+    for family_num in families_encoded:
+        if famous_family_num == family_num:
+            indices.append(counter)
+        counter += 1
+    i = 0
+    batch_accuracy = []
+    while (i + 1) * batch_size < len(indices):
+        index = indices[i * batch_size : (i+1) * batch_size]
+        rand_x = vectors[index]
+        np_y = y_vals[index].toarray()
+        rand_y = np_y.transpose()
+        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+    
+        accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+        
+        
+        batch_accuracy.append(acc_temp)
+
+        print('\ntest_Step #' + str(i+1))
+        print(',test_accuracy = ' + str(acc_temp))
+        print('\nconfusion_accuracy = ' + str(accuracy_with_confusion_val))
+        print('Total accuracy: ' + str(float(sum(batch_accuracy)) / float(len(batch_accuracy))))
+        i += 1
+
+
+
+# =============================================================================
+# with open('rbf_test_model_results.txt', 'w') as outfile:
+#     outfile.write('accuracy_score: {}\n'.format(metrics.accuracy_score(families_test, predicted_families)))
+#     
+#     outfile.write('{}\t{}\t\n'.format(actual_family, accuracy))
+#         
+#     print(total_acc.eval(session=sess), update_op.eval(session=sess))
+#     tp_rate = float(prediction_counter[True]) / sum(prediction_counter.values())
+#     outfile.write('counter = {} TP_rate = {}\n'.format(prediction_counter, tp_rate))
+# =============================================================================
