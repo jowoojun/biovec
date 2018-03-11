@@ -23,4 +23,5 @@ dataset.fasta
 /bianry_svm/
 density_map
 uniprot_sprot.fasta
-
+dis-disprot.json
+dis-fg-nups.fasta
