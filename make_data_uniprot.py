@@ -207,9 +207,11 @@ print ("Checking the file dis-disprot")
 
 dis_disprot_ngram   = "trained_models/density_map/dis-disprot/dis-disprot-ngram.csv"
 dis_disprot_protein = "trained_models/density_map/dis-disprot/dis-disprot-protein.csv"
+dis_disprot_model   = "trained_models/density_map/dis-disprot/dis-disprot-ngram-model"
 if not os.path.isfile(dis_disprot_ngram) or not os.path.isfile(dis_disprot_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     pv.word2vec_init(dis_disprot_ngram)
+    pv.save(dis_disprot_model) 
 
     ngram_vectors = pv.get_ngram_vectors(dis_disprot_ngram)
     make_protein_vector_for_other(dis_disprot, dis_disprot_protein,ngram_vectors)
@@ -228,9 +230,11 @@ print ("Checking the file disprot")
 
 disprot_ngram   = "trained_models/density_map/disprot/disprot-ngram.csv"
 disprot_protein = "trained_models/density_map/disprot/disprot-protein.csv"
+disprot_model   = "trained_models/density_map/disprot/disprot-ngram-model"
 if not os.path.isfile(disprot_ngram) or not os.path.isfile(disprot_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     pv.word2vec_init(disprot_ngram)
+    pv.save(disprot_model) 
 
     ngram_vectors = pv.get_ngram_vectors(disprot_ngram)
     make_protein_vector_for_other(disprot, disprot_protein,ngram_vectors)
@@ -249,9 +253,11 @@ print ("Checking the file dis-fg-nups")
 
 dis_fg_nups_ngram   = "trained_models/density_map/dis-fg-nups/dis-fg-nups-ngram.csv"
 dis_fg_nups_protein = "trained_models/density_map/dis-fg-nups/dis-fg-nups-protein.csv"
+dis_fg_nups_model   = "trained_models/density_map/dis-fg-nups/dis-fg-nups-ngram-model"
 if not os.path.isfile(dis_fg_nups_ngram) or not os.path.isfile(dis_fg_nups_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     pv.word2vec_init(dis_fg_nups_ngram)
+    pv.save(dis_fg_nups_model) 
 
     ngram_vectors = pv.get_ngram_vectors(dis_fg_nups_ngram)
     make_protein_vector_for_other(dis_fg_nups, dis_fg_nups_protein,ngram_vectors)
@@ -270,9 +276,11 @@ print ("Checking the file fg-nups")
 
 fg_nups_ngram   = "trained_models/density_map/fg-nups/fg-nups-ngram.csv"
 fg_nups_protein = "trained_models/density_map/fg-nups/fg-nups-protein.csv"
+fg_nups_model   = "trained_models/density_map/fg-nups/fg-nups-ngram-model"
 if not os.path.isfile(fg_nups_ngram) or not os.path.isfile(fg_nups_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     pv.word2vec_init(fg_nups_ngram)
+    pv.save(fg_nups_model) 
 
     ngram_vectors = pv.get_ngram_vectors(fg_nups_ngram)
     make_protein_vector_for_other(fg_nups, fg_nups_protein,ngram_vectors)
@@ -291,9 +299,11 @@ print ("Checking the file pdb1")
 
 pdb1_ngram   = "trained_models/density_map/pdb1/pdb1-ngram.csv"
 pdb1_protein = "trained_models/density_map/pdb1/pdb1-protein.csv"
+pdb1_model   = "trained_models/density_map/pdb1/pdb1-ngram-model"
 if not os.path.isfile(pdb1_ngram) or not os.path.isfile(pdb1_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     pv.word2vec_init(pdb1_ngram)
+    pv.save(pdb1_model) 
 
     ngram_vectors = pv.get_ngram_vectors(pdb1_ngram)
     make_protein_vector_for_other(pdb1, pdb1_protein,ngram_vectors)
@@ -312,9 +322,11 @@ print ("Checking the file pdb2")
 
 pdb2_ngram   = "trained_models/density_map/pdb2/pdb2-ngram.csv"
 pdb2_protein = "trained_models/density_map/pdb2/pdb2-protein.csv"
+pdb2_model   = "trained_models/density_map/pdb2/pdb2-ngram-model"
 if not os.path.isfile(pdb2_ngram) or not os.path.isfile(pdb2_protein):
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     pv.word2vec_init(pdb2_ngram)
+    pv.save(pdb2_model) 
 
     ngram_vectors = pv.get_ngram_vectors(pdb2_ngram)
     make_protein_vector_for_other(pdb2, pdb2_protein,ngram_vectors)
