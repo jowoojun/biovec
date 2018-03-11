@@ -11,8 +11,8 @@ with open("./trained_models/SVM_dataset/SVM_dataset_2D", "rb") as f:
     SVM_dataset = pickle.load(f)
 f.close()
 
-FG_NUPS = SVM_dataset[0:700]
-PDB = SVM_dataset[700:]
+FG_NUPS = SVM_dataset[0:649]
+PDB = SVM_dataset[649:]
 
 
 PDB = np.column_stack((PDB , len(PDB)*[0]))
