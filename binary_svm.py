@@ -63,8 +63,6 @@ for i, j in enumerate(np.unique(y_set)):
     plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
                 maker_size,c = ListedColormap(('red', 'green'))(i), label = j)
 plt.title('SVM (Training set)')
-plt.xlabel('Age')
-plt.ylabel('Estimated Salary')
 plt.legend()
 plt.show()
 
@@ -82,7 +80,5 @@ for i, j in enumerate(np.unique(y_set)):
     plt.scatter(X_set[y_set == j, 0], X_set[y_set == j,1],
                 maker_size,c = ListedColormap(('red', 'green'))(i), label = j)
 plt.title('SVM (Test set)')
-plt.xlabel('Age')
-plt.ylabel('Estimated Salary')
 plt.legend()
 plt.show()
