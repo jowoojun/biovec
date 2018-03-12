@@ -1,7 +1,6 @@
 import argparse
 
 import numpy as np
-
 import tensorflow as tf
 import pandas
 from sklearn import preprocessing
@@ -12,22 +11,22 @@ from collections import Counter
 from scipy.sparse import csc_matrix
 from sklearn.model_selection import KFold
 
+print ("Start getting data...")
+# Date input
 parser = argparse.ArgumentParser('Trains SVM model over protein vectors')
 parser.add_argument('--sample', type=str, default='../trained_models/protein_pfam_vector.csv')
 args = parser.parse_args()
 
-print ("Start getting data...")
-#label_encoder, x_vals, y_vals, depth, data_size =g et_data(sess, args.sample)
+# Read csv
 print("Read_csv...")
-
 dataframe = pandas.read_csv(args.sample, header=None)
 dataset = dataframe.values
 family = dataset[:,1]
 vectors = dataset[:,2:].astype(float)
 data_size = len(family)
-
 print("Done...\n")
 
+# Label encoder
 print("Labeling...")
 label_encoder = preprocessing.LabelEncoder()
 label_encoder.fit(family)
@@ -36,6 +35,7 @@ family = None
 depth = families_encoded.max() + 1
 print("Done...\n")
 
+# Find family that have a protein more than 400
 famous_list = []
 family_count = {}
 for family in families_encoded:
@@ -47,31 +47,31 @@ for family in families_encoded:
     if family_count[family] >= 400 and family not in famous_list:
         famous_list.append(family)
 
+# Make One_hot encoding and sparse matrics
 print("One hot Encoding...")
 rows = np.arange(families_encoded.size)
 cols = families_encoded
 data = np.ones(families_encoded.size)
 y_vals = csc_matrix((data, (rows, cols)), shape=(families_encoded.size, depth))
-
+rows, cols, data = None, None, None
 print("Done...\n")
 
+# Normalize vectors for accuracy
 min_on_training = vectors.min(axis=0)
 range_on_training = (vectors - min_on_training).max(axis=0)
-
 x_vals = (vectors - min_on_training) / range_on_training
-
 print ("Done...\n")
 
+# Initialize training variables
 batch_size = 100
 learning_rate = 0.01
 
-# Initialize placeholders
+# tf.Graph
 with tf.Graph().as_default() as graph:
+    # Initialize placeholders for training
     x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32)
     y_target = tf.placeholder(shape=[depth, None], dtype=tf.float32)
     prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
-    labels = tf.placeholder(shape=[None], dtype=tf.float32)
-    prediction_i = tf.placeholder(shape=[None], dtype=tf.float32)
 
     # Create variables for svm
     b = tf.Variable(tf.random_normal(shape=[depth, batch_size]), name="b")
@@ -104,37 +104,25 @@ with tf.Graph().as_default() as graph:
     pred_kernel = tf.exp(tf.multiply(gamma, tf.abs(pred_sq_dist)))
     
     prediction_output = tf.matmul(tf.multiply(y_target,b), pred_kernel)
-    something = tf.expand_dims(tf.reduce_mean(prediction_output,1), 1)
     prediction = tf.argmax(prediction_output-tf.expand_dims(tf.reduce_mean(prediction_output,1), 1), 0)
-    prediction_onehot = tf.transpose(tf.one_hot(prediction, depth))
     
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
-   
+    
+    # Initialize placeholders for accuracy
+    labels = tf.placeholder(shape=[None], dtype=tf.float32)
+    prediction_i = tf.placeholder(shape=[None], dtype=tf.float32)
+    
     # Define the metric and update operations
-    actual = tf.argmax(y_target,0)
+    actual = tf.argmax(y_target, 0)
     accuracy_with_confusion, tf_metric_update = tf.metrics.accuracy(labels, 
                                                                     prediction_i, 
                                                                     name="my_metric")
-    #accuracy_with_confusion = tf.metrics.accuracy(y_target, prediction_onehot)
+
     # Isolate the variables stored behind the scenes by the metric operation
     running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="my_metric")
 
     # Define initializer to initialize/reset running variables
     running_vars_initializer = tf.variables_initializer(var_list=running_vars)
-
-
-    # =============================================================================
-    # tp = tf.count_nonzero(prediction_onehot * y_target)
-    # tn = tf.count_nonzero((prediction_onehot - 1) * (y_target - 1))
-    # fp = tf.count_nonzero(prediction_onehot * (y_target - 1))
-    # fn = tf.count_nonzero((prediction_onehot - 1) * y_target)
-    # =============================================================================
-
-    # Calculate accuracy, precision, recall and F1 score.
-    #accuracy_with_confusion = tf.divide((tp + tn) , (tp + fp + fn + tn))
-    #precision = tf.divide(tp , (tp + fp))
-    #recall = tf.divide(tp , (tp + fn))
-    #fmeasure = tf.divide((2 * precision * recall) , (precision + recall))
 
     # Declare optimizer
     my_opt = tf.train.GradientDescentOptimizer(learning_rate)
@@ -153,54 +141,59 @@ sess.run(running_vars_initializer)
 loss_vec = []
 test_batch_accuracy = []
 
+# Collection of trained data and actual data
+used_test_y = np.zeros(shape=(0))
+predicted = np.zeros(shape=(0))
 
 #Initialize KFOLD Object
 seed = 7
 kfold = KFold(n_splits=10, shuffle=True, random_state=seed)
 
-used_test_y = np.zeros(shape=(0))
-predicted = np.zeros(shape=(0))
 #K fold cross validation
 for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
     train_set, test_set = x_vals[train_index], x_vals[test_index]
     sparse_encoded_train_label, sparse_encoded_test_label = y_vals[train_index], y_vals[test_index]
     i = 0
 
+    # Training
     while (i + 1) * batch_size < len(train_set):
         index = [j for j in range(batch_size * i, batch_size * (i + 1) )]
         rand_x = train_set[index]
         np_y = sparse_encoded_train_label[index].toarray()
         rand_y = np_y.transpose()
+        
+        # Training models
         sess.run(train_step, feed_dict={x_data: rand_x, y_target: rand_y})
         
+        # Calulate loss
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
         loss_vec.append(temp_loss)
 
         i += 1
-        
         if (i+1)%25==0:
             print('train_Step #' + str(i+1))
             print('Loss = ' + str(temp_loss))
             
+    # Test
     i = 0
     while (i + 1) * batch_size < len(test_set):
         index = [j for j in range(batch_size * i, batch_size * (i + 1) )]
         rand_x = test_set[index]
         np_y = sparse_encoded_test_label[index].toarray()
         rand_y = np_y.transpose()
-        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
         
+        # Get predicted data and encodered actual data of onehot actual data
         prediction_one_dim = sess.run(prediction, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
         actuals = sess.run(actual, feed_dict={y_target: rand_y})
-        accuracy_with_confusion_val = sess.run(tf_metric_update, feed_dict={labels: actuals, 
-                                                                            prediction_i: prediction_one_dim})
-        #prediction_val = sess.run(prediction, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-        #prediction_output_val = sess.run(prediction_output, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-        #something1 = sess.run(something, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-        #b_val = sess.run(b, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-        #kernel_val = sess.run(pred_kernel, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+        
+        # Calulate accuracy for normal mathod
+        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+        
+        # Calulate accuracy for confusion matrix
+        sess.run(tf_metric_update, feed_dict={labels: actuals, prediction_i: prediction_one_dim})
         accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
              
+        # Store actual data and predicted data
         used_test_y = np.append(used_test_y, actuals)
         predicted = np.append(predicted, prediction_one_dim)
         
@@ -217,22 +210,25 @@ for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
     print('\n')
     print('\n')
 
+# Calulate total accuracy of full data
 accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={labels: used_test_y, 
                                                                             prediction_i: predicted})
 print('Total accuracy: ' + str(float(sum(test_batch_accuracy)) / float(len(test_batch_accuracy))))
 print('Total accuracy: ' + str(accuracy_with_confusion_val))
 
+# Writing File
 with open('rbf_result.txt', 'w') as outfile:
     for famous_family_num in famous_list:
         family_name = label_encoder.inverse_transform(famous_family_num)
+        # Initialize array for confusion metrix
         predicted_fam = []
         actual_fam = []
         
+        # Calulate confusion metrix
         tp = 0
         fp = 0
         tn = 0
         fn = 0
-        
         for index, actual_family_num in enumerate(used_test_y):
             if famous_family_num == actual_family_num:
                 actual_fam.append(actual_family_num)
@@ -246,22 +242,13 @@ with open('rbf_result.txt', 'w') as outfile:
                     fp += 1
                 else:
                     tn += 1
-# =============================================================================
-#         
-#         for index, predicted_family_num in enumerate(predicted):
-#             if famous_family_num == predicted_family_num:
-#                 if predicted_family_num != used_test_y[index]:
-#                     fp += 1
-#             elif famous_family_num != :
-#                 tn += 1
-# =============================================================================
-        
-        #fam_accuracy= sess.run(accuracy_with_confusion, feed_dict={labels: actual_fam, prediction_i: predicted_fam})
+                    
+        # Calulate accuracy, sensitivity, specificity
         fam_accuracy = float(tp + tn) / float(tp+fp+tn+fn)
         sensitivity = float(tp) / float(tp + fn)
         specificity = float(tn) /float(tn + fp)
         
-        
+        # Write at file
         outfile.write('{}\t{}\t{}\t\t{:.5f}\t{:.5f}\t{:.5f}\n'.format(family_name, tp, len(actual_fam), 
                       specificity, sensitivity, fam_accuracy))
     
@@ -299,15 +286,4 @@ with open('rbf_result.txt', 'w') as outfile:
 #     print('Total accuracy: \n' + str(float(sum(batch_accuracy)) / float(len(batch_accuracy))))
 # 
 # 
-# =============================================================================
-
-# =============================================================================
-# with open('rbf_test_model_results.txt', 'w') as outfile:
-#     outfile.write('accuracy_score: {}\n'.format(metrics.accuracy_score(families_test, predicted_families)))
-#     
-#     outfile.write('{}\t{}\t\n'.format(actual_family, accuracy))
-#         
-#     print(total_acc.eval(session=sess), update_op.eval(session=sess))
-#     tp_rate = float(prediction_counter[True]) / sum(prediction_counter.values())
-#     outfile.write('counter = {} TP_rate = {}\n'.format(prediction_counter, tp_rate))
 # =============================================================================
