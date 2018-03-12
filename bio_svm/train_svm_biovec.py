@@ -77,7 +77,7 @@ with tf.Graph().as_default() as graph:
     b = tf.Variable(tf.random_normal(shape=[depth, batch_size]), name="b")
 
     # Gaussian (RBF) kernel
-    gamma = tf.constant(-1.0)
+    gamma = tf.constant(-4.0)
     dist = tf.reduce_sum(tf.square(x_data), 1)
     dist = tf.reshape(dist, [-1,1])
     sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
@@ -105,7 +105,7 @@ with tf.Graph().as_default() as graph:
     
     prediction_output = tf.matmul(tf.multiply(y_target,b), pred_kernel)
     something = tf.expand_dims(tf.reduce_mean(prediction_output,1), 1)
-    prediction = tf.arg_max(prediction_output-tf.expand_dims(tf.reduce_mean(prediction_output,1), 1), 0)
+    prediction = tf.argmax(prediction_output-tf.expand_dims(tf.reduce_mean(prediction_output,1), 1), 0)
     prediction_onehot = tf.transpose(tf.one_hot(prediction, depth))
     
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
@@ -143,12 +143,10 @@ with tf.Graph().as_default() as graph:
 
     # Initialize variables
     init = tf.global_variables_initializer()
-    init_op = tf.initialize_all_variables()
 
 sess = tf.Session(graph=graph)
 
 sess.run(init)
-sess.run(init_op)
 sess.run(running_vars_initializer)
 
 # loss and accuracy array declaration
@@ -262,12 +260,6 @@ with open('rbf_result.txt', 'w') as outfile:
         fam_accuracy = float(tp + tn) / float(tp+fp+tn+fn)
         sensitivity = float(tp) / float(tp + fn)
         specificity = float(tn) /float(tn + fp)
-        print(family_name)
-        print(tp)
-        print(tn)
-        print(fp)
-        print(fn)
-        print'\n\n'
         
         
         outfile.write('{}\t{}\t{}\t\t{:.5f}\t{:.5f}\t{:.5f}\n'.format(family_name, tp, len(actual_fam), 
