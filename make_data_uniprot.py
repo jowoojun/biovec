@@ -63,7 +63,7 @@ def make_uniport_with_families(Pfam_file, fasta_file, uniprot_with_families):
 
 def make_protein_pfam_vector_for_uniprot(protein_pfam_vector_fname, protein_vector_fname, protein_families, protein_family_stat):
     #Cut standard
-    min_proteins_in_family = 0
+    min_proteins_in_family = 300
 
     f = open(protein_pfam_vector_fname, "w")
     with open(protein_vector_fname) as protein_vector_file:
@@ -163,13 +163,6 @@ SVM_ngram = "trained_models/SVM_dataset/SVM_dataset_ngram.csv"
 SVM_protein = "trained_models/SVM_dataset/SVM_dataset_protein.csv"
 #disprot_pfam_vector_fname = "trained_models/FG-NUPS/dis_pfam_vector.csv"
 if not os.path.isfile(SVM_ngram) or not os.path.isfile(SVM_protein):
-<<<<<<< HEAD
-    print ('INFORM : There is no vector model file. Generate model files from data file...')
-    dpv.word2vec_init(SVM_ngram)
-
-    ngram_vectors = dpv.get_ngram_vectors(SVM_ngram)
-    make_protein_vector_for_other(SVM_dataset_fasta, SVM_protein,ngram_vectors)
-=======
     print ('INFORM : There is no vector model file. Generate model files from data file...')
     dpv.word2vec_init(SVM_ngram)
 
@@ -245,15 +238,11 @@ if not os.path.isfile(disprot_ngram) or not os.path.isfile(disprot_protein):
 
     ngram_vectors = pv.get_ngram_vectors(disprot_ngram)
     make_protein_vector_for_other(disprot, disprot_protein,ngram_vectors)
->>>>>>> a8ed397020d65cd73edf401ff24ce99baf7a95dc
 
 else:
     print ("INFORM : File's Existence is confirmed\n")
 
 print ("...OK\n")
-<<<<<<< HEAD
-print ("...SVM dataset Done\n")
-=======
 print ("...disprot Done\n")
 
 
@@ -302,7 +291,6 @@ else:
 print ("...OK\n")
 print ("...fg_nups Done\n")
 
->>>>>>> a8ed397020d65cd73edf401ff24ce99baf7a95dc
 
 # pdb1 train
 pv = word2vec.ProtVec(pdb1,
