@@ -39,11 +39,14 @@ X_test = sc.transform(X_test)
 
 # Fitting SVM to the Training set
 from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
 classifier = SVC(kernel = 'linear', random_state = 0)
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
 y_pred = classifier.predict(X_test)
+
+print ("accuracy_score : " , accuracy_score(y_test, y_pred))
 
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
