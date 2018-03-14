@@ -67,75 +67,89 @@ batch_size = 100
 learning_rate = 0.01
 
 # tf.Graph
-with tf.Graph().as_default() as graph:
-    # Initialize placeholders for training
-    x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32)
-    y_target = tf.placeholder(shape=[depth, None], dtype=tf.float32)
-    prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32)
+#with tf.Graph().as_default() as graph:
+# Initialize placeholders for training
+x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32, name='x_data')
+y_target = tf.placeholder(shape=[depth, None], dtype=tf.float32, name='y_target')
+prediction_grid = tf.placeholder(shape=[None, 100], dtype=tf.float32, name='prediction_grid')
 
-    # Create variables for svm
-    b = tf.Variable(tf.random_normal(shape=[depth, batch_size]), name="b")
+global_step = tf.Variable(0, trainable=False, name='global_step')
 
+# Create variables for svm
+b = tf.Variable(tf.random_normal(shape=[depth, batch_size]), name="b")
+
+with tf.name_scope('RBF_kernel'):
     # Gaussian (RBF) kernel
-    gamma = tf.constant(-4.0)
+    gamma = tf.constant(-3.0)
     dist = tf.reduce_sum(tf.square(x_data), 1)
     dist = tf.reshape(dist, [-1,1])
     sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
     my_kernel = tf.exp(tf.multiply(gamma, tf.abs(sq_dists)))
-    
-    # Declare function to do reshape/batch multiplication
-    def reshape_matmul(mat):
-        v1 = tf.expand_dims(mat, 1)
-        v2 = tf.reshape(v1, [depth, batch_size, 1])
-        return(tf.matmul(v2, v1))
-    
+
+# Declare function to do reshape/batch multiplication
+def reshape_matmul(mat):
+    v1 = tf.expand_dims(mat, 1)
+    v2 = tf.reshape(v1, [depth, batch_size, 1])
+    return(tf.matmul(v2, v1))
+
+with tf.name_scope('loss_layer'):
     # Compute SVM Model
     first_term = tf.reduce_sum(b)
     b_vec_cross = tf.matmul(tf.transpose(b), b)
     y_target_cross = reshape_matmul(y_target)
-    
+
     second_term = tf.reduce_sum(tf.multiply(my_kernel, tf.multiply(b_vec_cross, y_target_cross)),[1,2])
-    loss = tf.reduce_sum(tf.negative(tf.subtract(first_term, second_term)))
     
+with tf.name_scope('optimizer'):
+    loss = tf.reduce_sum(tf.negative(tf.subtract(first_term, second_term)))
+
+    # Declare optimizer
+    my_opt = tf.train.GradientDescentOptimizer(learning_rate)
+    #my_opt = tf.train.AdamOptimizer(learning_rate)
+    train_step = my_opt.minimize(loss, global_step=global_step)
+    
+    tf.summary.scalar('loss', loss)
+
+with tf.name_scope('RBF_prediction'):
     # Gaussian (RBF) prediction kernel
     rA = tf.reshape(tf.reduce_sum(tf.square(x_data), 1),[-1,1])
     rB = tf.reshape(tf.reduce_sum(tf.square(prediction_grid), 1),[-1,1])
     pred_sq_dist = tf.add(tf.subtract(rA, tf.multiply(2., tf.matmul(x_data, tf.transpose(prediction_grid)))), tf.transpose(rB))
     pred_kernel = tf.exp(tf.multiply(gamma, tf.abs(pred_sq_dist)))
-    
+
+with tf.name_scope('prediction'):
     prediction_output = tf.matmul(tf.multiply(y_target,b), pred_kernel)
     prediction = tf.argmax(prediction_output-tf.expand_dims(tf.reduce_mean(prediction_output,1), 1), 0)
-    
+
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
-    
-    # Initialize placeholders for accuracy
-    labels = tf.placeholder(shape=[None], dtype=tf.float32)
-    prediction_i = tf.placeholder(shape=[None], dtype=tf.float32)
-    
-    # Define the metric and update operations
-    actual = tf.argmax(y_target, 0)
-    accuracy_with_confusion, tf_metric_update = tf.metrics.accuracy(labels, 
-                                                                    prediction_i, 
-                                                                    name="my_metric")
+
+with tf.name_scope('accuracy'):
+    #with tf.name_scope('confusion_metrix'):
+    labels = tf.argmax(y_target, 0)
+    #accuracy_with_confusion, tf_metric_update = tf.metrics.accuracy(labels, prediction_i, name="my_metric")
+    accuracy_with_confusion, tf_metric_update = tf.metrics.accuracy(labels, prediction)
+    tf.summary.scalar('accuracy_with_confusion', accuracy_with_confusion)
 
     # Isolate the variables stored behind the scenes by the metric operation
-    running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="my_metric")
+    #running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="my_metric")
+    running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES)
 
     # Define initializer to initialize/reset running variables
     running_vars_initializer = tf.variables_initializer(var_list=running_vars)
 
-    # Declare optimizer
-    my_opt = tf.train.GradientDescentOptimizer(learning_rate)
-    train_step = my_opt.minimize(loss)
+# Initialize variables
+init = tf.global_variables_initializer()
+    
 
-
-    # Initialize variables
-    init = tf.global_variables_initializer()
-
-sess = tf.Session(graph=graph)
+#sess = tf.Session(graph=graph)
+sess = tf.Session()
 
 sess.run(init)
 sess.run(running_vars_initializer)
+
+# Initialize tensorboard merge
+merged = tf.summary.merge_all()
+writer = tf.summary.FileWriter('./logs', sess.graph)
 
 # loss and accuracy array declaration
 loss_vec = []
@@ -168,7 +182,13 @@ for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
         # Calulate loss
         temp_loss = sess.run(loss, feed_dict={x_data: rand_x, y_target: rand_y})
         loss_vec.append(temp_loss)
-
+        
+        # Calulate accuracy
+        accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+        
+        # Add summary in tensorboard 
+        summary = sess.run(merged, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
+        writer.add_summary(summary, global_step=sess.run(global_step))
         i += 1
         if (i+1)%25==0:
             print('train_Step #' + str(i+1))
@@ -182,63 +202,67 @@ for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
         np_y = sparse_encoded_test_label[index].toarray()
         rand_y = np_y.transpose()
         
-        # Get predicted data and encodered actual data of onehot actual data
-        prediction_one_dim = sess.run(prediction, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-        actuals = sess.run(actual, feed_dict={y_target: rand_y})
-        
-        # Calulate accuracy for normal mathod
-        acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-        
         # Calulate accuracy for confusion matrix
-        sess.run(tf_metric_update, feed_dict={labels: actuals, prediction_i: prediction_one_dim})
+        sess.run(tf_metric_update, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
         accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-             
-        # Store actual data and predicted data
-        used_test_y = np.append(used_test_y, actuals)
-        predicted = np.append(predicted, prediction_one_dim)
+
         
-        test_batch_accuracy.append(acc_temp)
+        
+        # Store actual data and predicted data
+        used_test_y = np.append(used_test_y, sess.run(labels, feed_dict={y_target: rand_y}))
+        predicted = np.append(predicted, sess.run(prediction, feed_dict={x_data: rand_x, 
+                                                                         y_target: rand_y, 
+                                                                         prediction_grid: rand_x}))
+        
+        test_batch_accuracy.append(accuracy_with_confusion_val)
+        
+        
         
         if (i+1)%25==0:
             print('\ntest_Step #' + str(i+1))
-            print('test_accuracy = ' + str(acc_temp))
+            #print('test_accuracy = ' + str(acc_temp))
             print('confusion_accuracy = ' + str(accuracy_with_confusion_val))
             
         i += 1
 
-    print('Batch accuracy: ' + str(acc_temp))
+    print('Batch accuracy: ' + str(accuracy_with_confusion_val))
     print('\n')
     print('\n')
 
 # Calulate total accuracy of full data
-accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={labels: used_test_y, 
-                                                                            prediction_i: predicted})
 print('Total accuracy: ' + str(float(sum(test_batch_accuracy)) / float(len(test_batch_accuracy))))
-print('Total accuracy: ' + str(accuracy_with_confusion_val))
 
 # Writing File
 with open('rbf_result.txt', 'w') as outfile:
     for famous_family_num in famous_list:
         family_name = label_encoder.inverse_transform(famous_family_num)
         # Initialize array for confusion metrix
-        predicted_fam = []
-        actual_fam = []
+        indices = []
+        for index, family_num in enumerate(used_test_y):
+            if famous_family_num == family_num:
+                indices.append(index)
+            
+        practice = np.random.choice(np.delete([k for k in range(0, len(used_test_y))], indices), len(indices), replace=False)
+        positive_seq = len(used_test_y[indices])
+        negative_seq = len(used_test_y[practice])
+        
+        
+        actual_total_seq = used_test_y[indices] + used_test_y[practice]
+        predicted_total_seq = predicted[indices] + predicted[practice]
         
         # Calulate confusion metrix
         tp = 0
         fp = 0
         tn = 0
         fn = 0
-        for index, actual_family_num in enumerate(used_test_y):
+        for index, actual_family_num in enumerate(actual_total_seq):
             if famous_family_num == actual_family_num:
-                actual_fam.append(actual_family_num)
-                predicted_fam.append(predicted[index])
-                if actual_family_num == predicted[index]:
+                if actual_family_num == predicted_total_seq[index]:
                     tp += 1 #TP
                 else:
                     fn += 1 #FP
             else:
-                if famous_family_num == predicted[index]:
+                if famous_family_num == predicted_total_seq[index]:
                     fp += 1
                 else:
                     tn += 1
@@ -249,41 +273,5 @@ with open('rbf_result.txt', 'w') as outfile:
         specificity = float(tn) /float(tn + fp)
         
         # Write at file
-        outfile.write('{}\t{}\t{}\t\t{:.5f}\t{:.5f}\t{:.5f}\n'.format(family_name, tp, len(actual_fam), 
+        outfile.write('{}\t{}\t{}\t\t{:.5f}\t{:.5f}\t{:.5f}\n'.format(family_name, positive_seq, negative_seq, 
                       specificity, sensitivity, fam_accuracy))
-    
-
-# =============================================================================
-# # Test with famous families 
-# prediction_total = []
-# for famous_family_num in famous_list:
-#     print('=======family_name = {}======'.format(label_encoder.inverse_transform(famous_family_num)))
-#     indices = []
-#     counter = 0
-#     for family_num in families_encoded:
-#         if famous_family_num == family_num:
-#             indices.append(counter)
-#         counter += 1
-# 
-#     i = 0
-#     batch_accuracy = []
-# 
-#     while (i + 1) * batch_size < len(indices):
-#         index = indices[i * batch_size : (i+1) * batch_size]
-#         rand_x = x_vals[index]
-#         np_y = y_vals[index].toarray()
-#         rand_y = np_y.transpose()
-#         test_acc_temp = sess.run(accuracy, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-#         #prediction1_output_val = sess.run(prediction_output, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-#         prediction1_val = sess.run(prediction, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-#         #accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-#         #something2 = sess.run(something, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-#         #b_val1 = sess.run(b, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-#         #kernel_val1 = sess.run(pred_kernel, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
-#         batch_accuracy.append(test_acc_temp)
-#         i += 1
-#     prediction_total.append(prediction1_val)
-#     print('Total accuracy: \n' + str(float(sum(batch_accuracy)) / float(len(batch_accuracy))))
-# 
-# 
-# =============================================================================
