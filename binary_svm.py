@@ -39,11 +39,14 @@ X_test = sc.transform(X_test)
 
 # Fitting SVM to the Training set
 from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score
 classifier = SVC(kernel = 'linear', random_state = 0)
 classifier.fit(X_train, y_train)
 
 # Predicting the Test set results
 y_pred = classifier.predict(X_test)
+
+print ("accuracy_score : " , accuracy_score(y_test, y_pred))
 
 # Making the Confusion Matrix
 from sklearn.metrics import confusion_matrix
@@ -63,8 +66,6 @@ for i, j in enumerate(np.unique(y_set)):
     plt.scatter(X_set[y_set == j, 0], X_set[y_set == j, 1],
                 maker_size,c = ListedColormap(('red', 'green'))(i), label = j)
 plt.title('SVM (Training set)')
-plt.xlabel('Age')
-plt.ylabel('Estimated Salary')
 plt.legend()
 plt.show()
 
@@ -82,7 +83,5 @@ for i, j in enumerate(np.unique(y_set)):
     plt.scatter(X_set[y_set == j, 0], X_set[y_set == j,1],
                 maker_size,c = ListedColormap(('red', 'green'))(i), label = j)
 plt.title('SVM (Test set)')
-plt.xlabel('Age')
-plt.ylabel('Estimated Salary')
 plt.legend()
 plt.show()
