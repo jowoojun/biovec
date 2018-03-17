@@ -27,7 +27,7 @@ class Pfam:
         return protein_family_dict, number_of_protein_in_family
 
 if __name__ == '__main__':
-    data_path = 'trained_models/protein_pfam_vector.csv'
+    data_path = '../trained_models/protein_pfam_vector.csv'
     pf = Pfam()
     pfd, number_of_protein_in_family = pf.pfam_parser(data_path)
 

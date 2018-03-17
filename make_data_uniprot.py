@@ -63,7 +63,7 @@ def make_uniport_with_families(Pfam_file, fasta_file, uniprot_with_families):
 
 def make_protein_pfam_vector_for_uniprot(protein_pfam_vector_fname, protein_vector_fname, protein_families, protein_family_stat):
     #Cut standard
-    min_proteins_in_family = 300
+    min_proteins_in_family = 100
 
     f = open(protein_pfam_vector_fname, "w")
     with open(protein_vector_fname) as protein_vector_file:
@@ -72,7 +72,7 @@ def make_protein_pfam_vector_for_uniprot(protein_pfam_vector_fname, protein_vect
             if uniprot_name in protein_families:
                 family = protein_families[uniprot_name]
                 if protein_family_stat[family] >= min_proteins_in_family:
-                    f.write('{}\t{}\t{}'.format(uniprot_name, protein_families[uniprot_name], vector_string) + "\n")
+                    f.write('{},{},{}'.format(uniprot_name, protein_families[uniprot_name], vector_string) + "\n")
     f.close()
 
 

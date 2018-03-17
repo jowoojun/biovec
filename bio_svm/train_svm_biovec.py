@@ -44,7 +44,7 @@ for family in families_encoded:
     else:
         family_count[family] = 1
         
-    if family_count[family] >= 400 and family not in famous_list:
+    if family_count[family] >= 300 and family not in famous_list:
         famous_list.append(family)
 
 # Make One_hot encoding and sparse matrics
@@ -59,15 +59,15 @@ print("Done...\n")
 # Normalize vectors for accuracy
 min_on_training = vectors.min(axis=0)
 range_on_training = (vectors - min_on_training).max(axis=0)
+
 x_vals = (vectors - min_on_training) / range_on_training
 print ("Done...\n")
 
 # Initialize training variables
-batch_size = 100
+#batch_size=50
+batch_size=100
 learning_rate = 0.01
 
-# tf.Graph
-#with tf.Graph().as_default() as graph:
 # Initialize placeholders for training
 x_data = tf.placeholder(shape=[None, 100], dtype=tf.float32, name='x_data')
 y_target = tf.placeholder(shape=[depth, None], dtype=tf.float32, name='y_target')
@@ -78,19 +78,21 @@ global_step = tf.Variable(0, trainable=False, name='global_step')
 # Create variables for svm
 b = tf.Variable(tf.random_normal(shape=[depth, batch_size]), name="b")
 
-with tf.name_scope('RBF_kernel'):
-    # Gaussian (RBF) kernel
-    gamma = tf.constant(-3.0)
-    dist = tf.reduce_sum(tf.square(x_data), 1)
-    dist = tf.reshape(dist, [-1,1])
-    sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
-    my_kernel = tf.exp(tf.multiply(gamma, tf.abs(sq_dists)))
-
 # Declare function to do reshape/batch multiplication
 def reshape_matmul(mat):
     v1 = tf.expand_dims(mat, 1)
     v2 = tf.reshape(v1, [depth, batch_size, 1])
     return(tf.matmul(v2, v1))
+
+with tf.name_scope('RBF_kernel'):
+    # Gaussian (RBF) kernel
+    #gamma = tf.constant(-1.0)
+    gamma = tf.constant(-10.0)
+    #gamma = tf.constant(-100.0)
+    dist = tf.reduce_sum(tf.square(x_data), 1)
+    dist = tf.reshape(dist, [-1,1])
+    sq_dists = tf.multiply(2., tf.matmul(x_data, tf.transpose(x_data)))
+    my_kernel = tf.exp(tf.multiply(gamma, tf.abs(sq_dists)))
 
 with tf.name_scope('loss_layer'):
     # Compute SVM Model
@@ -100,16 +102,6 @@ with tf.name_scope('loss_layer'):
 
     second_term = tf.reduce_sum(tf.multiply(my_kernel, tf.multiply(b_vec_cross, y_target_cross)),[1,2])
     
-with tf.name_scope('optimizer'):
-    loss = tf.reduce_sum(tf.negative(tf.subtract(first_term, second_term)))
-
-    # Declare optimizer
-    my_opt = tf.train.GradientDescentOptimizer(learning_rate)
-    #my_opt = tf.train.AdamOptimizer(learning_rate)
-    train_step = my_opt.minimize(loss, global_step=global_step)
-    
-    tf.summary.scalar('loss', loss)
-
 with tf.name_scope('RBF_prediction'):
     # Gaussian (RBF) prediction kernel
     rA = tf.reshape(tf.reduce_sum(tf.square(x_data), 1),[-1,1])
@@ -123,15 +115,24 @@ with tf.name_scope('prediction'):
 
     accuracy = tf.reduce_mean(tf.cast(tf.equal(prediction, tf.argmax(y_target,0)), tf.float32))
 
+with tf.name_scope('optimizer'):
+    loss = tf.reduce_sum(tf.negative(tf.subtract(first_term, second_term)))
+
+    # Declare optimizer
+    my_opt = tf.train.AdagradOptimizer(learning_rate)
+    #my_opt = tf.train.GradientDescentOptimizer(learning_rate)
+    #my_opt = tf.train.AdamOptimizer(learning_rate)
+    #my_opt = tf.train.RMSPropOptimizer(learning_rate)
+    train_step = my_opt.minimize(loss, global_step=global_step)
+    
+    tf.summary.scalar('loss', loss)
+
 with tf.name_scope('accuracy'):
-    #with tf.name_scope('confusion_metrix'):
     labels = tf.argmax(y_target, 0)
-    #accuracy_with_confusion, tf_metric_update = tf.metrics.accuracy(labels, prediction_i, name="my_metric")
     accuracy_with_confusion, tf_metric_update = tf.metrics.accuracy(labels, prediction)
     tf.summary.scalar('accuracy_with_confusion', accuracy_with_confusion)
 
     # Isolate the variables stored behind the scenes by the metric operation
-    #running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES, scope="my_metric")
     running_vars = tf.get_collection(tf.GraphKeys.LOCAL_VARIABLES)
 
     # Define initializer to initialize/reset running variables
@@ -160,7 +161,7 @@ used_test_y = np.zeros(shape=(0))
 predicted = np.zeros(shape=(0))
 
 #Initialize KFOLD Object
-seed = 7
+seed = 10
 kfold = KFold(n_splits=10, shuffle=True, random_state=seed)
 
 #K fold cross validation
@@ -186,6 +187,8 @@ for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
         # Calulate accuracy
         accuracy_with_confusion_val = sess.run(accuracy_with_confusion, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
         
+        # Store actual data and predicted data
+    
         # Add summary in tensorboard 
         summary = sess.run(merged, feed_dict={x_data: rand_x, y_target: rand_y, prediction_grid: rand_x})
         writer.add_summary(summary, global_step=sess.run(global_step))
@@ -193,6 +196,7 @@ for train_index, test_index in kfold.split(x_vals, y_vals.toarray()):
         if (i+1)%25==0:
             print('train_Step #' + str(i+1))
             print('Loss = ' + str(temp_loss))
+            print('confusion_accuracy = ' + str(accuracy_with_confusion_val))
             
     # Test
     i = 0
@@ -247,25 +251,24 @@ with open('rbf_result.txt', 'w') as outfile:
         negative_seq = len(used_test_y[practice])
         
         
-        actual_total_seq = used_test_y[indices] + used_test_y[practice]
-        predicted_total_seq = predicted[indices] + predicted[practice]
-        
-        # Calulate confusion metrix
+        actual_total_seq = np.append(used_test_y[indices], used_test_y[practice])
+        predicted_total_seq = np.append(predicted[indices], predicted[practice])
+                 
         tp = 0
         fp = 0
         tn = 0
         fn = 0
         for index, actual_family_num in enumerate(actual_total_seq):
-            if famous_family_num == actual_family_num:
-                if actual_family_num == predicted_total_seq[index]:
-                    tp += 1 #TP
-                else:
-                    fn += 1 #FP
-            else:
-                if famous_family_num == predicted_total_seq[index]:
-                    fp += 1
-                else:
-                    tn += 1
+             if famous_family_num == actual_family_num:
+                 if actual_family_num == predicted_total_seq[index]:
+                     tp += 1 #TP
+                 else:
+                     fn += 1 #FP
+             else:
+                 if famous_family_num == predicted_total_seq[index]:
+                     fp += 1
+                 else:
+                     tn += 1
                     
         # Calulate accuracy, sensitivity, specificity
         fam_accuracy = float(tp + tn) / float(tp+fp+tn+fn)
