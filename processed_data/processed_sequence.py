@@ -28,19 +28,19 @@ if not os.path.exists("./binary_svm/dataset.fasta"):
             dataset.write(data)
     f.close()
         
-    with open("pdb_seqres.fasta" , "r") as f:
+    with open("disordered-pdb.fasta" , "r") as f:
         data_list = []
         for r in SeqIO.parse(f, "fasta"):
             data_list.append(r.seq)
 
         data_list = np.array(data_list)
-        data_seq = []
-        for seq in data_list:
-            if 890 <= len(seq) and len(seq) <= 910 :
-                data_seq.append(seq)
+# data_seq = []
+#       for seq in data_list:
+#           if 890 <= len(seq) and len(seq) <= 910 :
+#               data_seq.append(seq)
 
-        data_seq = np.random.choice(np.array(data_seq) , fg_len)
-        for seq in data_seq:
+#        data_seq = np.random.choice(np.array(data_seq) , fg_len)
+        for seq in data_list:
                 name = "pdb"
                 data = ">%s\n%s\n" %(name,seq)
                 dataset.write(data)

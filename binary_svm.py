@@ -11,8 +11,8 @@ with open("./trained_models/SVM_dataset/SVM_dataset_2D", "rb") as f:
     SVM_dataset = pickle.load(f)
 f.close()
 
-FG_NUPS = SVM_dataset[0:649]
-PDB = SVM_dataset[649:]
+FG_NUPS = SVM_dataset[0:1365]
+PDB = SVM_dataset[1365:]
 
 
 PDB = np.column_stack((PDB , len(PDB)*[0]))
@@ -20,10 +20,10 @@ FG_NUPS = np.column_stack((FG_NUPS , len(FG_NUPS)*[1]))
 
 dataset = np.vstack((PDB,FG_NUPS))
 
-print dataset
-
 X = dataset[:, [0, 1]]
+print X
 y = dataset[:, 2]
+print y
 
 print dataset
 

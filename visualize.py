@@ -13,8 +13,6 @@ str = raw_input()
 def protein_tsne(dataset_2D , dataset_vec):
     tsne = t3.BioTsne()
     if not os.path.isfile(dataset_2D):
-        #dataset_vectors = tsne.csv_to_array(dataset_vec)
-#print len(dataset_vectors)
         tsne.density_tsne(dataset_2D ,dataset_vec) 
 
 if "PS"==str:
