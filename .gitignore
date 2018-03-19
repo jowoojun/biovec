@@ -16,8 +16,8 @@ disprot.fasta
 FG-NUPS.fasta
 pdb.fasta
 /bio_svm/logs
-/bio_svm/rbf_model_results.txt
-/bio_svm/rbf_test_model_results.txt
+/bio_svm/rbf_result.txt
+/bio_svm/excel/
 FG-NUPS.json
 dataset.fasta
 /bianry_svm/
