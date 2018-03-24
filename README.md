@@ -13,7 +13,8 @@ Such Classification and prediction are easy to understand usage, but personally 
 
 See another implementation in https://github.com/kyu999/biovec, https://github.com/peter-volkov/biovec
 
-#If you don't have Database, you can download from the below link.
+If you don't have Database, you can download from the below link.
+=================================================================
 
 Uniprot (Swiss-prot)
  - http://www.uniprot.org/downloads
@@ -21,11 +22,13 @@ Uniprot (Swiss-prot)
 Disprot
  - http://www.disprot.org/browse
 
-#If you don't working on mac OS try this
+If you don't working on mac OS try this
+=================================================================
  - https://github.com/tensorflow/tensorflow/issues/5089
 
 
-#How to install and use
+How to install and use
+=================================================================
 1. Install python packages.
   - pip install -r requirements.txt
 
@@ -58,6 +61,7 @@ Disprot
 
 
 description 
+=================================================================
   - word2vec : Generating word2vec model from protein databases(gensim).
 
   - document : Protain databases(uniprot, Pfam, disprot, PDB...).
@@ -69,7 +73,8 @@ description
   - bio_svm : Classifying proteins into protein's families
 
 
-#How to run tsne.py
+How to run tsne.py
+=================================================================
 
 1. Install python packages.
   - pip install -r requirements.txt
