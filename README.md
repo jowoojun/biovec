@@ -57,8 +57,9 @@ How to install and use
 
 7. If you want to get how to we classify proteins into each family, please run bio_svm/train_svm_biovec.py
   - then you want to know how to we organize SVM using RBF kernels, try next commend.
-		tensorboard --logdir=./logs
-
+   ```  
+   tensorboard --logdir=./logs
+   ```
 
 description 
 =================================================================
