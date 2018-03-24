@@ -13,6 +13,8 @@ Such Classification and prediction are easy to understand usage, but personally 
 
 See another implementation in https://github.com/kyu999/biovec, https://github.com/peter-volkov/biovec
 
+Paper : http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0141287
+
 If you don't have Database, you can download from the below link.
 =================================================================
 
