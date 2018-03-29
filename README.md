@@ -69,24 +69,94 @@ description
 
   - document : Protain databases(uniprot, Pfam, disprot, PDB...).
 
-  - bio_tsne : Visualization protain vectors(TSNE)
+  - bio_tsne : TSNE(100D to 2D) 3gram vectors and protein vectors.
 
-  - trained_models : Proprocessed data made by make_data_uniprot.py
+  - trained_models : Trained data made by make_data_uniprot.py
 
-  - bio_svm : Classifying proteins into protein's families
+  - bio_svm : Classifying proteins (random PDB and FG-nups).
+
+  - processd_data : Processing data( json file to fatsta , select data  , merge data)
+
+  - biovisual : Visualization protein vectors
+
+  - ngrams_properties : For the labeing 3gram aminoacid
 
 
-How to run tsne.py
+How can see graph
 =================================================================
-
+1 3gram protein space 
+=====================
 1. Install python packages.
   - pip install -r requirements.txt
 
-2. run bio2vec
-  - python bio2vec.py
+2. download document
 
-3. run tsne
-  - python tsne.py
+2. run make_data_uniprot.py
+  - python make_data_uniprot.py
 
-4. choose 3gram ro protein
-   just type what you want
+3. run visualize.py
+  - python visualize.py
+
+4. choose PS(protein space)
+  - just type PS
+
+5. finally you can see 3gram protein space
+
+![proteinspave.png](./image/proteinspace.png)
+
+2 binay svm with FG-nups and random PDBs
+========================================
+1. Install python packages.
+  - pip install -r requirements.txt
+
+2. download document
+  - unzip document 
+    dis-disprot.json , disprot.json ,dis-fg-nups.fasta , fg-nups.fasta , pdb_seqres.fasta , disordered-pdb.fasta
+    move document to processed_data
+
+3. run processed_sequence.py in processed_data
+  - processed_seqence.py generate dir of binary_svm 
+
+4. have to gzip dataset.fasta file and move binary_svm to document
+  - dataset.fasta located 2017Bio2Vec/processed_data/binary_svm
+
+5. run make_data_uniprot.py
+
+6. run visualize.py
+
+7. choos BSVM (binary svm) 
+
+8. run binary_svm.py
+    
+9. finally you can see binary svm graph
+
+![binarysvm.png](./image/binarysvm.png)
+
+3 density map
+============
+1. Install python packages.
+  - pip install -r requirements.txt
+
+2. download document
+  - unzip document 
+    dis-disprot.json , disprot.json ,dis-fg-nups.fasta , fg-nups.fasta , pdb_seqres.fasta , disordered-pdb.fasta
+    move document to processed_data
+
+3. run processed_sequence.py in processed_data
+  - processed_seqence.py generate dir of binary_svm 
+
+4. have to gzip all the data
+  - the data  located 2017Bio2Vec/processed_data/binary_svm
+
+5. run make_data_uniprot.py
+
+6. run visualize.py
+
+7. choos DM(density map)
+
+8. finally you can see density map
+
+![densitymap.png](./image/densitymap.png)
+
+
+
