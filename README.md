@@ -38,12 +38,8 @@ How to install and use
      https://stackoverflow.com/questions/21784641/installation-issue-with-matplotlib-python
 
 2. Download data file.
-  - If you want to just test this program, you can download small database from below link.
-      https://drive.google.com/open?id=1-hHiEMMPlNM4XLY2i3guaI16gLuW-VRc
-
-  - On the other hand, If you want to run original program, you have to download original database from below link.
-       https://drive.google.com/open?id=1gtzoPyNePFW8RcuUmCh-JkVW4e7sc0gh
-
+  - If you want to run original program, you have to download original database from below link.
+	  https://drive.google.com/file/d/1qTbNRV2oDi4mBQ6RavuJXSSMtxr57ztT/view?usp=sharing
 3. Move the downloaded file to our project directory.
 
 4. And then, unzip downloaded file.
