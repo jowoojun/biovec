@@ -35,7 +35,7 @@ idna==2.6
 imagesize==1.0.0
 ipaddress==1.0.18
 ipykernel==4.8.2
-ipython==5.5.0
+ipython==7.16.3
 ipython-genutils==0.2.0
 isort==4.3.4
 jedi==0.11.1
